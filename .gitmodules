@@ -1,0 +1,3 @@
+[submodule "ext/veldrid"]
+	path = ext/veldrid
+	url = https://github.com/mellinoe/veldrid

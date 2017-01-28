@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "synthapp": {
+      "commandName": "Project"
+    }
+  }
+}
