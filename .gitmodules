@@ -1,3 +1,7 @@
 [submodule "ext/veldrid"]
 	path = ext/veldrid
 	url = https://github.com/mellinoe/veldrid
+
+[submodule "ext/imgui.net"]
+    path = ext/imgui.net
+    url = https://github.com/mellinoe/imgui.net
