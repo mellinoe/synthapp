@@ -11,7 +11,8 @@
     <OutputType>exe</OutputType>
     <RuntimeIdentifiers>win7-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;osx.10.10-x64</RuntimeIdentifiers>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <DefaultNamespace>SynthApp</DefaultNamespace>
+    <RootNamespace>SynthApp</RootNamespace>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="$(ExtDir)\imgui.net\deps\cimgui\win7-x64\cimgui.dll">

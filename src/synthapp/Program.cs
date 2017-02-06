@@ -13,28 +13,28 @@ namespace SynthApp
     {
         private static OpenGLRenderContext s_rc;
         private static ImGuiRenderer s_imguiRenderer;
-        private static AudioTrack s_audioTrack;
-        private static float s_frequency = 440.0f;
-        private static float s_duration = 1f;
+        private static int s_chunkBuffer = 4;
 
-        private static string[] s_shapeNames = Enum.GetNames(typeof(AudioTrack.Shape));
-        private static int s_selectedShape = 0;
+        private static StreamingAudioSource s_streamSource;
 
-        public static AudioEngine AudioEngine { get; set; }
+        public static Sequencer Sequencer { get; set; }
 
         public static void Main(string[] args)
         {
             var window = new DedicatedThreadWindow(960, 540, WindowState.Normal);
-            s_rc = new OpenGLRenderContext(window);
+            s_rc = new OpenGLRenderContext(window, false);
             s_rc.ResourceFactory.AddShaderLoader(new EmbeddedResourceShaderLoader(typeof(Program).GetTypeInfo().Assembly));
             s_rc.ClearColor = RgbaFloat.Grey;
             window.Visible = true;
             s_imguiRenderer = new ImGuiRenderer(s_rc, window.NativeWindow);
-            DateTime previousFrameTime = DateTime.UtcNow;
-            AudioEngine = new AudioEngine();
+            DateTime previousFrameTime = DateTime.Now;
+
+            Sequencer = new Sequencer();
+            s_streamSource = new StreamingAudioSource(Sequencer, 40000);
+
             while (window.Exists)
             {
-                DateTime newFrameTime = DateTime.UtcNow;
+                DateTime newFrameTime = DateTime.Now;
                 float deltaSeconds = (float)(newFrameTime - previousFrameTime).TotalSeconds;
                 InputSnapshot snapshot = window.GetInputSnapshot();
                 s_rc.Viewport = new Viewport(0, 0, s_rc.Window.Width, s_rc.Window.Height);
@@ -49,24 +49,56 @@ namespace SynthApp
         {
             s_imguiRenderer.Update(deltaSeconds);
             s_imguiRenderer.OnInputUpdated(snapshot);
-            ImGui.Text("Hello SynthApp");
 
-            ImGui.DragFloat("Frequency", ref s_frequency, 20.0f, 20000f, 1f);
-            ImGui.DragFloat("Duration", ref s_duration, 0.01f, 100f, 0.05f);
-            ImGui.Combo("Shape", ref s_selectedShape, s_shapeNames);
-            if (ImGui.Button("Change Track"))
+            if (ImGui.Button("Play the patterns"))
             {
-                s_audioTrack = new AudioTrack(s_frequency, 44100, s_duration, (AudioTrack.Shape)Enum.Parse(typeof(AudioTrack.Shape), s_shapeNames[s_selectedShape]));
-                AudioEngine.SetAudioTrack(s_audioTrack);
+                s_streamSource.DataProvider = Sequencer;
+                s_streamSource.Play();
             }
-
-            if (ImGui.Button("Play"))
+            if (ImGui.Button("Play sine wave at 440 Hz"))
             {
-                AudioEngine.Play();
+                short[] data = new short[3 * Globals.SampleRate];
+                for (int i = 0; i < data.Length; i++)
+                {
+                    double t = i * 440 / (double)Globals.SampleRate;
+                    t *= 2 * Math.PI;
+                    double sample = Math.Sin(t);
+                    data[i] = (short)(sample * short.MaxValue);
+                }
+
+                Globals.AudioEngine.PlayAudioData(data, Globals.SampleRate);
+            }
+            if (ImGui.Button("Play simple sine provider"))
+            {
+                s_streamSource.DataProvider = new SimpleSineProvider();
+                s_streamSource.Play();
+            }
+            if (s_streamSource.DataProvider is SimpleSineProvider ssi)
+            {
+                float freq = (float)ssi.Frequency;
+                if (ImGui.DragFloat("Sine Frequency", ref freq, 10, 20000, 1f))
+                {
+                    ssi.Frequency = freq;
+                }
             }
             if (ImGui.Button("Stop"))
             {
-                AudioEngine.Stop();
+                Globals.AudioEngine.Stop();
+                s_streamSource.Stop();
+            }
+
+            int chunkSize = (int)s_streamSource.BufferedSamples;
+            if (ImGui.DragInt("Chunk Size", ref chunkSize, 33f, 100, 200000, $"Chunk Size: {chunkSize}"))
+            {
+                s_streamSource.BufferedSamples = (uint)chunkSize;
+            }
+            if (ImGui.DragInt("Chunk Buffer Count", ref s_chunkBuffer, 1f, 1, 100, $"Chunk Buffer: {s_chunkBuffer}"))
+            { }
+
+            float bpm = (float)Globals.BeatsPerMinute;
+            if (ImGui.DragFloat($"Beats per minute", ref bpm, 10, 500, 1f))
+            {
+                Globals.BeatsPerMinute = bpm;
             }
         }
 
