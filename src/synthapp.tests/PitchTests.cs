@@ -51,5 +51,28 @@ namespace Tests
                 }
             }
         }
+
+        [Fact]
+        public void PitchClassProperty()
+        {
+            foreach (PitchClass pc in Enum.GetValues(typeof(PitchClass)))
+            {
+                Pitch p = new Pitch(pc, 5);
+                Assert.Equal(pc, p.PitchClass);
+            }
+        }
+
+        [Fact]
+        public void OctaveProperty()
+        {
+            foreach (PitchClass pc in Enum.GetValues(typeof(PitchClass)))
+            {
+                for (uint i = 1; i <= 10; i++)
+                {
+                    Pitch p = new Pitch(pc, i);
+                    Assert.Equal(i, p.Octave);
+                }
+            }
+        }
     }
 }

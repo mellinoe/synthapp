@@ -8,7 +8,7 @@ namespace SynthApp
 
         public SimpleWaveformGenerator Generator => _generator;
 
-        public override float[] Play(Pattern p, uint startSample, uint numSamples)
+        public override float[] Play(NoteSequence p, uint startSample, uint numSamples)
         {
             uint endSample = startSample + numSamples;
             float[] samples = new float[numSamples];

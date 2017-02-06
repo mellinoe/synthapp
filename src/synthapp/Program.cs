@@ -19,6 +19,8 @@ namespace SynthApp
 
         public static Sequencer Sequencer { get; set; }
 
+        public static Gui Gui { get; set; }
+
         public static void Main(string[] args)
         {
             var window = new DedicatedThreadWindow(960, 540, WindowState.Normal);
@@ -31,6 +33,8 @@ namespace SynthApp
 
             Sequencer = new Sequencer();
             s_streamSource = new StreamingAudioSource(Sequencer, 40000);
+
+            Gui = new Gui(s_rc);
 
             while (window.Exists)
             {
@@ -49,6 +53,9 @@ namespace SynthApp
         {
             s_imguiRenderer.Update(deltaSeconds);
             s_imguiRenderer.OnInputUpdated(snapshot);
+
+            Gui.DrawGui();
+            Gui.DrawPattern(Sequencer.Pattern, Sequencer.Channels);
 
             if (ImGui.Button("Play the patterns"))
             {

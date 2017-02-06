@@ -6,9 +6,13 @@ namespace SynthApp
     public class Sequencer : StreamingDataProvider
     {
         private List<Channel> _channels = new List<Channel>();
-        private List<Pattern> _patterns = new List<Pattern>();
+        private Pattern _pattern;
 
         private uint _finalChunkGenerated;
+
+        public Pattern Pattern => _pattern;
+
+        public IReadOnlyList<Channel> Channels => _channels;
 
         public Sequencer()
         {
@@ -28,7 +32,9 @@ namespace SynthApp
             _channels.Add(kick);
             kick.Gain = 0.85f;
 
-            Pattern triPattern = new Pattern();
+            _pattern = new Pattern(_channels);
+
+            NoteSequence triPattern = new NoteSequence();
             triPattern.Notes.Add(new Note(PatternTime.Steps(2), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
             triPattern.Notes.Add(new Note(PatternTime.Steps(6), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
             triPattern.Notes.Add(new Note(PatternTime.Steps(10), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
@@ -39,10 +45,9 @@ namespace SynthApp
             triPattern.Notes.Add(new Note(PatternTime.Steps(26), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
             triPattern.Notes.Add(new Note(PatternTime.Steps(30), PatternTime.Steps(1), new Pitch(PitchClass.A, 2)));
             triPattern.Notes.Add(new Note(PatternTime.Steps(31), PatternTime.Steps(1), new Pitch(PitchClass.A, 3)));
-            triPattern.Duration = PatternTime.Steps(32);
-            _patterns.Add(triPattern);
+            _pattern.NoteSequences[0] = triPattern;
 
-            Pattern sawPattern = new Pattern();
+            NoteSequence sawPattern = new NoteSequence();
             sawPattern.Notes.Add(new Note(PatternTime.Steps(0), PatternTime.Steps(2), new Pitch(PitchClass.CSharp, 4)));
             sawPattern.Notes.Add(new Note(PatternTime.Steps(4), PatternTime.Steps(2), new Pitch(PitchClass.E, 4)));
             sawPattern.Notes.Add(new Note(PatternTime.Steps(8), PatternTime.Steps(2), new Pitch(PitchClass.CSharp, 4)));
@@ -54,10 +59,9 @@ namespace SynthApp
             sawPattern.Notes.Add(new Note(PatternTime.Steps(22), PatternTime.Steps(1), new Pitch(PitchClass.G, 4)));
             sawPattern.Notes.Add(new Note(PatternTime.Steps(24), PatternTime.Steps(3), new Pitch(PitchClass.FSharp, 4)));
             sawPattern.Notes.Add(new Note(PatternTime.Steps(28), PatternTime.Steps(3), new Pitch(PitchClass.E, 4)));
-            sawPattern.Duration = PatternTime.Steps(32);
-            _patterns.Add(sawPattern);
+            _pattern.NoteSequences[1] = sawPattern;
 
-            Pattern sinePattern = new Pattern();
+            NoteSequence sinePattern = new NoteSequence();
             sinePattern.Notes.Add(new Note(PatternTime.Steps(0), PatternTime.Steps(2), new Pitch(PitchClass.CSharp, 6)));
             sinePattern.Notes.Add(new Note(PatternTime.Steps(4), PatternTime.Steps(2), new Pitch(PitchClass.E, 6)));
             sinePattern.Notes.Add(new Note(PatternTime.Steps(8), PatternTime.Steps(2), new Pitch(PitchClass.CSharp, 6)));
@@ -72,10 +76,9 @@ namespace SynthApp
             sinePattern.Notes.Add(new Note(PatternTime.Steps(29), PatternTime.Steps(1), new Pitch(PitchClass.D, 6)));
             sinePattern.Notes.Add(new Note(PatternTime.Steps(30), PatternTime.Steps(1), new Pitch(PitchClass.CSharp, 6)));
             sinePattern.Notes.Add(new Note(PatternTime.Steps(31), PatternTime.Steps(1), new Pitch(PitchClass.B, 5)));
-            sinePattern.Duration = PatternTime.Steps(32);
-            _patterns.Add(sinePattern);
+            _pattern.NoteSequences[2] = sinePattern;
 
-            Pattern kicks = new Pattern();
+            NoteSequence kicks = new NoteSequence();
             kicks.Notes.Add(new Note(PatternTime.Steps(0), PatternTime.Steps(2), Pitch.MiddleC));
             kicks.Notes.Add(new Note(PatternTime.Steps(4), PatternTime.Steps(2), Pitch.MiddleC));
             kicks.Notes.Add(new Note(PatternTime.Steps(8), PatternTime.Steps(2), Pitch.MiddleC));
@@ -84,14 +87,15 @@ namespace SynthApp
             kicks.Notes.Add(new Note(PatternTime.Steps(20), PatternTime.Steps(2), Pitch.MiddleC));
             kicks.Notes.Add(new Note(PatternTime.Steps(24), PatternTime.Steps(2), Pitch.MiddleC));
             kicks.Notes.Add(new Note(PatternTime.Steps(28), PatternTime.Steps(2), Pitch.MiddleC));
-            kicks.Duration = PatternTime.Steps(32);
-            _patterns.Add(kicks);
+            _pattern.NoteSequences[3] = kicks;
+
+            _pattern.Duration = PatternTime.Beats(8);
         }
 
         public short[] GetNextAudioChunk(uint numSamples)
         {
             uint start = _finalChunkGenerated;
-            uint totalSamplesInPattern = (uint)(_patterns[0].Duration.TotalBeats * Globals.SamplesPerBeat);
+            uint totalSamplesInPattern = (uint)(_pattern.Duration.TotalBeats * Globals.SamplesPerBeat);
             float[] total = new float[numSamples];
             bool wrapped = false;
             uint beginningSamples = 0;
@@ -108,7 +112,7 @@ namespace SynthApp
 
                 {
                     Channel channel = _channels[i];
-                    Pattern pattern = _patterns[i];
+                    NoteSequence pattern = _pattern.NoteSequences[i];
 
                     float[] channelOut_End = null;
                     channelOut_End = channel.Play(pattern, start, endSamples);
@@ -127,7 +131,7 @@ namespace SynthApp
                 for (int i = 0; i < _channels.Count; i++)
                 {
                     Channel channel = _channels[i];
-                    Pattern pattern = _patterns[i];
+                    NoteSequence pattern = _pattern.NoteSequences[i];
                     float[] channelOut = channel.Play(pattern, start, numSamples);
                     Util.Mix(channelOut, total, total);
                 }
@@ -155,7 +159,7 @@ namespace SynthApp
 
         public uint GetTotalSamples()
         {
-            return (uint)(_patterns[0].Duration.TotalBeats * Globals.SamplesPerBeat);
+            return (uint)(_pattern.Duration.TotalBeats * Globals.SamplesPerBeat);
         }
     }
 }

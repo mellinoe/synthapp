@@ -67,6 +67,7 @@ namespace SynthApp
         public static readonly PatternTime Zero = new PatternTime(0, 0);
 
         public static PatternTime Steps(uint steps) => new PatternTime(steps, 0);
+        public static PatternTime Beats(uint beats) => new PatternTime(beats * 4, 0);
 
         public int CompareTo(PatternTime other)
         {

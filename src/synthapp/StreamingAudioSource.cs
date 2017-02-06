@@ -1,6 +1,7 @@
 ﻿using System;
 using OpenTK.Audio.OpenAL;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace SynthApp
 {
@@ -9,7 +10,8 @@ namespace SynthApp
         private readonly int _sid;
         private bool _playing;
         private StreamingDataProvider _dataProvider;
-        private uint _chunkSizeInSamples = 10000;
+        private uint _chunkSizeInSamples = 400;
+        private readonly List<int> _cachedBufferIDs = new List<int>();
 
         public uint BufferedSamples { get; set; } = 40000;
 
@@ -59,10 +61,27 @@ namespace SynthApp
             Task.Run(() => AudioFillLoop());
         }
 
-        public void Stop()
+        public unsafe void Stop()
         {
             _playing = false;
             AL.SourceStop(_sid);
+            AL.GetSource(_sid, ALGetSourcei.BuffersQueued, out int count);
+            if (count > 0)
+            {
+                uint* bufferIDs = stackalloc uint[count];
+                AL.SourceUnqueueBuffers(_sid, count);
+                for (uint i = 0; i < count; i++)
+                {
+                    CacheBuffer(bufferIDs[i]);
+                }
+            }
+
+            _dataProvider.SeekTo(0);
+        }
+
+        private void CacheBuffer(uint id)
+        {
+            _cachedBufferIDs.Add((int)id);
         }
 
         private void RefillAndQueueBuffer(int bufferID)

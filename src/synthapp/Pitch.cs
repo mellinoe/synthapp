@@ -25,6 +25,23 @@ namespace SynthApp
         }
 
         public static Pitch MiddleC { get; } = new Pitch(PitchClass.C, 4);
+
+        public PitchClass PitchClass
+        {
+            get
+            {
+                int value = Value % 12;
+                return (PitchClass)value;
+            }
+        }
+
+        public uint Octave
+        {
+            get
+            {
+                return Value / 12u;
+            }
+        }
     }
 
     public enum PitchClass
