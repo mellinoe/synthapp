@@ -9,6 +9,7 @@ namespace SynthApp
     {
         private readonly RenderContext _rc;
         private Channel _editedChannel;
+        private PianoRoll _pianoRoll = new PianoRoll();
 
         private readonly HashSet<Channel> _channelWindowsOpen = new HashSet<Channel>();
         private readonly HashSet<Channel> _channelWindowsClosed = new HashSet<Channel>();
@@ -37,6 +38,8 @@ namespace SynthApp
                 _channelWindowsOpen.Remove(channel);
             }
             _channelWindowsClosed.Clear();
+
+            _pianoRoll.Draw();
         }
 
         private void DrawMainMenu()

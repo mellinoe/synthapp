@@ -2,7 +2,7 @@
 
 namespace SynthApp
 {
-    public struct Pitch
+    public struct Pitch : IEquatable<Pitch>, IComparable<Pitch>
     {
         /// <summary>
         /// A value representing the pitch, where 0 is equivalent to the pitch A0.
@@ -41,6 +41,21 @@ namespace SynthApp
             {
                 return Value / 12u;
             }
+        }
+
+        public int CompareTo(Pitch other)
+        {
+            return Value.CompareTo(other.Value);
+        }
+
+        public bool Equals(Pitch other)
+        {
+            return Value.Equals(other.Value);
+        }
+
+        public override string ToString()
+        {
+            return $"{PitchClass}{Octave}";
         }
     }
 

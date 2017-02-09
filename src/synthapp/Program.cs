@@ -23,7 +23,7 @@ namespace SynthApp
 
         public static void Main(string[] args)
         {
-            var window = new DedicatedThreadWindow(960, 540, WindowState.Normal);
+            var window = new DedicatedThreadWindow(960, 540, WindowState.Maximized);
             s_rc = new OpenGLRenderContext(window, false);
             s_rc.ResourceFactory.AddShaderLoader(new EmbeddedResourceShaderLoader(typeof(Program).GetTypeInfo().Assembly));
             s_rc.ClearColor = RgbaFloat.Grey;

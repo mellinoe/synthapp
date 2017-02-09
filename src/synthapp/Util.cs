@@ -27,7 +27,23 @@ namespace SynthApp
             return (short)(value * short.MaxValue);
         }
 
-        private static double Clamp(double value, double min, double max)
+        public static double Clamp(double value, double min, double max)
+        {
+            if (value <= min)
+            {
+                return min;
+            }
+            else if (value >= max)
+            {
+                return max;
+            }
+            else
+            {
+                return value;
+            }
+        }
+
+        public static float Clamp(float value, float min, float max)
         {
             if (value <= min)
             {
@@ -74,6 +90,17 @@ namespace SynthApp
             {
                 return b;
             }
+        }
+
+        public static uint Argb(float a, float r, float g, float b)
+        {
+            return
+                unchecked((uint)(
+                    (byte)(a * 255.0f) << 24
+                    | (byte)(r * 255.0f) << 0
+                    | (byte)(g * 255.0f) << 8
+                    | (byte)(b * 255.0f) << 16)
+                );
         }
     }
 }
