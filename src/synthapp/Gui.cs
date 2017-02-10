@@ -15,6 +15,8 @@ namespace SynthApp
         private readonly HashSet<Channel> _channelWindowsClosed = new HashSet<Channel>();
         private bool _patternEditorVisible = true;
 
+        public Sequencer Sequencer { get; set; }
+
         public Gui(RenderContext rc)
         {
             _rc = rc;
@@ -31,6 +33,8 @@ namespace SynthApp
             {
                 DrawChannelWindow(channel);
             }
+
+            DrawPattern(Sequencer.Pattern, Sequencer.Channels);
 
             // Cleanup
             foreach (Channel channel in _channelWindowsClosed)
@@ -85,7 +89,7 @@ namespace SynthApp
             if (ImGui.BeginWindow(
                 "Pattern Editor",
                 ref _patternEditorVisible,
-                WindowFlags.NoCollapse | WindowFlags.ShowBorders | WindowFlags.MenuBar))
+                WindowFlags.NoCollapse | WindowFlags.MenuBar))
             {
                 if (ImGui.BeginMenuBar())
                 {
@@ -110,16 +114,15 @@ namespace SynthApp
                 for (int i = 0; i < channels.Count; i++)
                 {
                     Channel channel = channels[i];
-                    if (ImGui.BeginChild(i.ToString(), true, WindowFlags.ShowBorders | WindowFlags.HorizontalScrollbar))
-                    {
-                        NoteSequence notes = pattern.NoteSequences[i];
-                        Draw(string.Empty, ref notes);
-                        ImGui.EndChild();
-                    }
                     if (ImGui.Button($"[Channel {i}] {channel.Name}"))
                     {
                         _editedChannel = channel;
                         OpenChannelWindow(channel);
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button($"Piano Roll###PR{i}"))
+                    {
+                        _pianoRoll.SetNotes(Sequencer.Pattern.NoteSequences[i].Notes, Sequencer.Pattern.Duration);
                     }
                 }
                 ImGui.PopID();

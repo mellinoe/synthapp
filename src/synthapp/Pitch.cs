@@ -55,7 +55,12 @@ namespace SynthApp
 
         public override string ToString()
         {
-            return $"{PitchClass}{Octave}";
+            return $"{WithSymbol(PitchClass)}{Octave}";
+        }
+
+        private object WithSymbol(PitchClass pitchClass)
+        {
+            return pitchClass.ToString().Replace("Sharp", "#").Replace("Flat", "b");
         }
     }
 

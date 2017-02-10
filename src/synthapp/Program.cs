@@ -35,6 +35,7 @@ namespace SynthApp
             s_streamSource = new StreamingAudioSource(Sequencer, 40000);
 
             Gui = new Gui(s_rc);
+            Gui.Sequencer = Sequencer;
 
             while (window.Exists)
             {
@@ -55,7 +56,6 @@ namespace SynthApp
             s_imguiRenderer.OnInputUpdated(snapshot);
 
             Gui.DrawGui();
-            Gui.DrawPattern(Sequencer.Pattern, Sequencer.Channels);
 
             if (ImGui.Button("Play the patterns"))
             {
