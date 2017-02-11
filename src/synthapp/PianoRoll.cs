@@ -232,7 +232,7 @@ namespace SynthApp
                         }
                         if (io.MouseDown[0]) // Left Mouse
                         {
-                            AddNote(io.MousePosition - windowPos);
+                            AddNote(io.MousePosition - _viewOffset - gridPos);
                         }
                     }
                 }
@@ -246,13 +246,15 @@ namespace SynthApp
             _noteRemovals.Add(note); ;
         }
 
-        private void AddNote(Vector2 pos)
+        private void AddNote(Vector2 gridPos)
         {
-            Pitch pitch = new Pitch(GetPitchValue(pos));
-            uint step = GetStep(pos);
+            Pitch pitch = new Pitch(GetPitchValue(gridPos));
+            uint step = GetStep(gridPos);
             Note n = new Note(PatternTime.Steps(step), _newNoteDuration, pitch);
-            _dragging = true;
             _interacting = n;
+            _dragging = true;
+            _dragOffset = gridPos - GetNoteStartPosition(n);
+            _dragOffset.Y = 0;
             _notes.Add(n);
         }
 

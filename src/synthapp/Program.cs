@@ -29,6 +29,7 @@ namespace SynthApp
             s_rc.ClearColor = RgbaFloat.Grey;
             window.Visible = true;
             s_imguiRenderer = new ImGuiRenderer(s_rc, window.NativeWindow);
+            CustomStyle.ActivateStyle2(true, 1f);
             DateTime previousFrameTime = DateTime.Now;
 
             Sequencer = new Sequencer();
