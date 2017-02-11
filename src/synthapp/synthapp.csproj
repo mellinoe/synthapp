@@ -19,6 +19,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>cimgui.dll</Link>
     </Content>
+    <Content Condition="'$(RuntimeIdentifier)' == 'ubuntu.16.04-x64'" Include="$(ExtDir)\imgui.net\deps\cimgui\ubuntu.14.04-x64\cimgui.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>cimgui.so</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets\GLSL\imgui-frag.glsl" />
