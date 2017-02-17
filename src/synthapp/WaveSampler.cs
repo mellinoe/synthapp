@@ -50,23 +50,25 @@ namespace SynthApp
         {
             uint endSample = startSample + numSamples;
             float[] samples = new float[numSamples];
-
-            foreach (Note note in p.Notes)
+            if (!Muted)
             {
-                uint noteStartSample = (uint)(note.StartTime.TotalBeats * Globals.SamplesPerBeat);
-                uint noteDurationSamples = TotalSamples;
-                uint noteEndSample = noteStartSample + noteDurationSamples;
-
-                if ((noteEndSample >= startSample && noteEndSample <= endSample)
-                    || (noteStartSample >= startSample && noteStartSample <= endSample)
-                    || (noteStartSample <= startSample && noteEndSample >= endSample))
+                foreach (Note note in p.Notes)
                 {
-                    uint effectiveStartSample = Util.Max(startSample, noteStartSample);
-                    uint effectiveEndSample = Util.Min(endSample, noteEndSample);
-                    uint effectiveNoteDurationSamples = effectiveEndSample - effectiveStartSample;
-                    uint effectivePhase = effectiveStartSample - noteStartSample;
+                    uint noteStartSample = (uint)(note.StartTime.TotalBeats * Globals.SamplesPerBeat);
+                    uint noteDurationSamples = TotalSamples;
+                    uint noteEndSample = noteStartSample + noteDurationSamples;
 
-                    AddNote(samples, note, effectiveStartSample - startSample, effectiveNoteDurationSamples, effectivePhase);
+                    if ((noteEndSample >= startSample && noteEndSample <= endSample)
+                        || (noteStartSample >= startSample && noteStartSample <= endSample)
+                        || (noteStartSample <= startSample && noteEndSample >= endSample))
+                    {
+                        uint effectiveStartSample = Util.Max(startSample, noteStartSample);
+                        uint effectiveEndSample = Util.Min(endSample, noteEndSample);
+                        uint effectiveNoteDurationSamples = effectiveEndSample - effectiveStartSample;
+                        uint effectivePhase = effectiveStartSample - noteStartSample;
+
+                        AddNote(samples, note, effectiveStartSample - startSample, effectiveNoteDurationSamples, effectivePhase);
+                    }
                 }
             }
 

@@ -12,8 +12,12 @@ namespace SynthApp
         private StreamingDataProvider _dataProvider;
         private uint _chunkSizeInSamples = 400;
         private readonly List<int> _cachedBufferIDs = new List<int>();
+        private int _currentBufferSamplesProcessed;
+        private long _samplesProcessed;
 
-        public uint BufferedSamples { get; set; } = 40000;
+        public long SamplesProcessed => _samplesProcessed + _currentBufferSamplesProcessed;
+
+        public uint BufferedSamples { get; set; } = 10000;
 
         public StreamingDataProvider DataProvider { get => _dataProvider; set => _dataProvider = value; }
 
@@ -38,13 +42,20 @@ namespace SynthApp
                         int bufferID = (int)processedIDs[i];
                         RefillAndQueueBuffer(bufferID);
                     }
+
+                    _samplesProcessed += (buffersProcessed * _chunkSizeInSamples);
                 }
+
+                AL.GetSource(_sid, ALGetSourcei.SampleOffset, out _currentBufferSamplesProcessed);
 
                 if (_playing && AL.GetSourceState(_sid) != ALSourceState.Playing)
                 {
                     AL.SourcePlay(_sid);
                 }
             }
+
+            _samplesProcessed = 0;
+            _currentBufferSamplesProcessed = 0;
         }
 
         public void Play()
@@ -77,6 +88,7 @@ namespace SynthApp
             }
 
             _dataProvider.SeekTo(0);
+            _samplesProcessed = 0;
         }
 
         private void CacheBuffer(uint id)
@@ -101,6 +113,5 @@ namespace SynthApp
     {
         short[] GetNextAudioChunk(uint numSamples);
         void SeekTo(uint sample);
-        uint GetTotalSamples();
     }
 }

@@ -59,6 +59,22 @@ namespace SynthApp
             }
         }
 
+        public static int Clamp(int value, int min, int max)
+        {
+            if (value <= min)
+            {
+                return min;
+            }
+            else if (value >= max)
+            {
+                return max;
+            }
+            else
+            {
+                return value;
+            }
+        }
+
         public static void Mix(float[] a, float[] b, float[] result)
         {
             Debug.Assert(a.Length == b.Length && a.Length == result.Length);
@@ -101,6 +117,17 @@ namespace SynthApp
                     | (byte)(g * 255.0f) << 8
                     | (byte)(b * 255.0f) << 16)
                 );
+        }
+
+        public static short[] FloatToShortNormalized(float[] total)
+        {
+            short[] normalized = new short[total.Length];
+            for (int i = 0; i < total.Length; i++)
+            {
+                normalized[i] = DoubleToShort(total[i]);
+            }
+
+            return normalized;
         }
     }
 }

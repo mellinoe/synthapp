@@ -17,6 +17,7 @@ namespace SynthApp
 
         public static double SecondsPerBeat => 60 / BeatsPerMinute;
         public static double SamplesPerBeat => SampleRate * SecondsPerBeat;
+        public static double SamplesPerStep => SamplesPerBeat / 4;
 
         /// <summary>
         /// Samples per second.
@@ -24,5 +25,7 @@ namespace SynthApp
         public static uint SampleRate { get; set; } = 44100;
 
         public static AudioEngine AudioEngine { get; } = new AudioEngine();
+
+        public static InputTracker Input { get; } = new InputTracker();
     }
 }

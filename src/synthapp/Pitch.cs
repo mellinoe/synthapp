@@ -24,6 +24,9 @@ namespace SynthApp
             Value = value;
         }
 
+        /// <summary>
+        /// C4
+        /// </summary>
         public static Pitch MiddleC { get; } = new Pitch(PitchClass.C, 4);
 
         public PitchClass PitchClass

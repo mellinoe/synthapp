@@ -16,6 +16,7 @@ namespace SynthApp
         private bool _patternEditorVisible = true;
 
         public Sequencer Sequencer { get; set; }
+        public KeyboardLivePlayInput KeyboardInput { get; set; }
 
         public Gui(RenderContext rc)
         {
@@ -35,6 +36,11 @@ namespace SynthApp
             }
 
             DrawPattern(Sequencer.Pattern, Sequencer.Channels);
+
+            if (_editedChannel != null)
+            {
+                KeyboardInput.Play(_editedChannel);
+            }
 
             // Cleanup
             foreach (Channel channel in _channelWindowsClosed)
@@ -123,6 +129,7 @@ namespace SynthApp
                     if (ImGui.Button($"Piano Roll###PR{i}"))
                     {
                         _pianoRoll.SetNotes(Sequencer.Pattern.NoteSequences[i].Notes, Sequencer.Pattern.Duration);
+                        _editedChannel = channel;
                     }
                 }
                 ImGui.PopID();

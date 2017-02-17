@@ -11,7 +11,8 @@ namespace SynthApp
 
         public string Name { get; set; } = "New Channel";
         public float Gain { get; set; } = 0.7f;
+        public bool Muted { get; set; } = false;
 
-        public abstract float[] Play(NoteSequence p, uint startSample, uint numSamples);
+        public abstract float[] Play(NoteSequence ns, uint startSample, uint numSamples);
     }
 }

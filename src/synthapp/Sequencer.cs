@@ -79,14 +79,14 @@ namespace SynthApp
             _pattern.NoteSequences[2] = sinePattern;
 
             NoteSequence kicks = new NoteSequence();
-            kicks.Notes.Add(new Note(PatternTime.Steps(0), PatternTime.Steps(2), Pitch.MiddleC));
-            kicks.Notes.Add(new Note(PatternTime.Steps(4), PatternTime.Steps(2), Pitch.MiddleC));
-            kicks.Notes.Add(new Note(PatternTime.Steps(8), PatternTime.Steps(2), Pitch.MiddleC));
-            kicks.Notes.Add(new Note(PatternTime.Steps(12), PatternTime.Steps(2), Pitch.MiddleC));
-            kicks.Notes.Add(new Note(PatternTime.Steps(16), PatternTime.Steps(2), Pitch.MiddleC));
-            kicks.Notes.Add(new Note(PatternTime.Steps(20), PatternTime.Steps(2), Pitch.MiddleC));
-            kicks.Notes.Add(new Note(PatternTime.Steps(24), PatternTime.Steps(2), Pitch.MiddleC));
-            kicks.Notes.Add(new Note(PatternTime.Steps(28), PatternTime.Steps(2), Pitch.MiddleC));
+            kicks.Notes.Add(new Note(new PatternTime(0, 0), PatternTime.Steps(2), Pitch.MiddleC));
+            kicks.Notes.Add(new Note(new PatternTime(4, 0), PatternTime.Steps(2), Pitch.MiddleC));
+            kicks.Notes.Add(new Note(new PatternTime(8, 0), PatternTime.Steps(2), Pitch.MiddleC));
+            kicks.Notes.Add(new Note(new PatternTime(12, 0), PatternTime.Steps(2), Pitch.MiddleC));
+            kicks.Notes.Add(new Note(new PatternTime(16, 0), PatternTime.Steps(2), Pitch.MiddleC));
+            kicks.Notes.Add(new Note(new PatternTime(20, 0), PatternTime.Steps(2), Pitch.MiddleC));
+            kicks.Notes.Add(new Note(new PatternTime(24, 0), PatternTime.Steps(2), Pitch.MiddleC));
+            kicks.Notes.Add(new Note(new PatternTime(28, 0), PatternTime.Steps(2), Pitch.MiddleC));
             _pattern.NoteSequences[3] = kicks;
 
             _pattern.Duration = PatternTime.Beats(8);
@@ -137,11 +137,7 @@ namespace SynthApp
                 }
             }
 
-            short[] normalized = new short[total.Length];
-            for (int i = 0; i < total.Length; i++)
-            {
-                normalized[i] = Util.DoubleToShort(total[i]);
-            }
+            short[] normalized = Util.FloatToShortNormalized(total);
 
             _finalChunkGenerated = start + numSamples;
             if (wrapped)

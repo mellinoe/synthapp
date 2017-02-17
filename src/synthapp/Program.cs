@@ -16,6 +16,9 @@ namespace SynthApp
         private static int s_chunkBuffer = 4;
 
         private static StreamingAudioSource s_streamSource;
+        private static LiveNotePlayer s_livePlayer;
+        private static KeyboardLivePlayInput s_keyboardInput;
+        private static AudioStreamCombiner s_combiner;
 
         public static Sequencer Sequencer { get; set; }
 
@@ -33,16 +36,24 @@ namespace SynthApp
             DateTime previousFrameTime = DateTime.Now;
 
             Sequencer = new Sequencer();
-            s_streamSource = new StreamingAudioSource(Sequencer, 40000);
+            s_livePlayer = new LiveNotePlayer();
+            s_combiner = new AudioStreamCombiner();
+            s_combiner.Add(Sequencer);
+            s_combiner.Add(s_livePlayer);
+            s_streamSource = new StreamingAudioSource(s_combiner, 40000);
+
+            s_keyboardInput = new KeyboardLivePlayInput(s_livePlayer, s_streamSource);
 
             Gui = new Gui(s_rc);
             Gui.Sequencer = Sequencer;
+            Gui.KeyboardInput = s_keyboardInput;
 
             while (window.Exists)
             {
                 DateTime newFrameTime = DateTime.Now;
                 float deltaSeconds = (float)(newFrameTime - previousFrameTime).TotalSeconds;
                 InputSnapshot snapshot = window.GetInputSnapshot();
+                Globals.Input.UpdateFrameInput(snapshot);
                 s_rc.Viewport = new Viewport(0, 0, s_rc.Window.Width, s_rc.Window.Height);
                 s_rc.ClearBuffer();
                 Update(deltaSeconds, snapshot);
@@ -58,9 +69,12 @@ namespace SynthApp
 
             Gui.DrawGui();
 
+            ImGui.Text("Samples played: " + s_streamSource.SamplesProcessed);
+            ImGui.Text("Seconds played: " + ((double)s_streamSource.SamplesProcessed / Globals.SampleRate));
+
             if (ImGui.Button("Play the patterns"))
             {
-                s_streamSource.DataProvider = Sequencer;
+                s_streamSource.DataProvider = s_combiner;
                 s_streamSource.Play();
             }
             if (ImGui.Button("Play sine wave at 440 Hz"))

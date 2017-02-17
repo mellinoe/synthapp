@@ -54,8 +54,16 @@ namespace SynthApp
         public unsafe void Draw()
         {
             ImGui.SetNextWindowSize(new Vector2(600, 400), SetCondition.FirstUseEver);
-            if (ImGui.BeginWindow("Piano Roll", ref _opened, 1.0f, WindowFlags.NoScrollWithMouse | WindowFlags.NoScrollbar))
+            if (ImGui.BeginWindow("Piano Roll", ref _opened, 1.0f, WindowFlags.NoScrollWithMouse | WindowFlags.NoScrollbar | WindowFlags.MenuBar))
             {
+                if (ImGui.BeginMenuBar())
+                {
+                    if (ImGui.MenuItem("Clear"))
+                    {
+                        _notes.Clear();
+                    }
+                    ImGui.EndMenuBar();
+                }
                 IO io = ImGui.GetIO();
                 DrawList dl = DrawList.GetForCurrentWindow();
                 Vector2 windowPos = ImGui.GetCursorScreenPos();
