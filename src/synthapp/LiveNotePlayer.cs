@@ -29,7 +29,7 @@ namespace SynthApp
             return ns;
         }
 
-        public short[] GetNextAudioChunk(uint numSamples)
+        public void GetNextAudioChunk(short[] output, uint numSamples)
         {
             while (_events.TryDequeue(out KeyboardNoteEvent kne))
             {
@@ -55,22 +55,27 @@ namespace SynthApp
                         kvp.Value.ClearAll();
                     }
                 }
-                return new short[numSamples];
+
+                Util.Clear(output);
+                return;
             }
 
-            float[] data = new float[numSamples];
+            float[] data = Util.Rent<float>(numSamples);
+            float[] channelData = Util.Rent<float>(numSamples);
             foreach (var kvp in _sequences)
             {
                 Channel c = kvp.Key;
                 LivePlayerChannelState lpcs = kvp.Value;
 
-                float[] channelData = c.Play(lpcs.Sequence, _finalChunkGenerated, numSamples);
+                c.Play(channelData, lpcs.Sequence, _finalChunkGenerated, numSamples);
                 Util.Mix(data, channelData, data);
             }
+            Util.Return(channelData);
 
             _finalChunkGenerated += numSamples;
 
-            return Util.FloatToShortNormalized(data);
+            Util.FloatToShortNormalized(output, data);
+            Util.Return(data);
         }
 
         private void HandleEvent(KeyboardNoteEvent kne, PatternTime currentTime)

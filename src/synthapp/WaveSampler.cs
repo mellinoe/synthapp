@@ -46,10 +46,9 @@ namespace SynthApp
             }
         }
 
-        public override float[] Play(NoteSequence p, uint startSample, uint numSamples)
+        public override void Play(float[] output, NoteSequence p, uint startSample, uint numSamples)
         {
             uint endSample = startSample + numSamples;
-            float[] samples = new float[numSamples];
             if (!Muted)
             {
                 foreach (Note note in p.Notes)
@@ -67,12 +66,10 @@ namespace SynthApp
                         uint effectiveNoteDurationSamples = effectiveEndSample - effectiveStartSample;
                         uint effectivePhase = effectiveStartSample - noteStartSample;
 
-                        AddNote(samples, note, effectiveStartSample - startSample, effectiveNoteDurationSamples, effectivePhase);
+                        AddNote(output, note, effectiveStartSample - startSample, effectiveNoteDurationSamples, effectivePhase);
                     }
                 }
             }
-
-            return samples;
         }
 
         private void AddNote(float[] samples, Note note, uint bufferStartIndex, uint numSamples, uint phaseStartSample)

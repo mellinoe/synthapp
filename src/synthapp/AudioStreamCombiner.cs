@@ -18,16 +18,15 @@ namespace SynthApp
             return _dataProviders.Remove(provider);
         }
 
-        public short[] GetNextAudioChunk(uint numSamples)
+        public void GetNextAudioChunk(short[] data, uint numSamples)
         {
-            short[] data = new short[numSamples];
+            short[] providerData = Util.Rent<short>(numSamples);
             foreach (StreamingDataProvider provider in _dataProviders)
             {
-                short[] providerData = provider.GetNextAudioChunk(numSamples);
+                provider.GetNextAudioChunk(providerData, numSamples);
                 MixClamped(data, providerData);
             }
-
-            return data;
+            Util.Return(providerData);
         }
 
         private void MixClamped(short[] dest, short[] added)

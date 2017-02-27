@@ -2,6 +2,7 @@
 using OpenTK.Audio.OpenAL;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Buffers;
 
 namespace SynthApp
 {
@@ -17,7 +18,7 @@ namespace SynthApp
 
         public long SamplesProcessed => _samplesProcessed + _currentBufferSamplesProcessed;
 
-        public uint BufferedSamples { get; set; } = 5000;
+        public uint BufferedSamples { get; set; } = 10000;
 
         public StreamingDataProvider DataProvider { get => _dataProvider; set => _dataProvider = value; }
 
@@ -98,20 +99,22 @@ namespace SynthApp
 
         private void RefillAndQueueBuffer(int bufferID)
         {
-            short[] data = GetNextAudioChunk();
-            AL.BufferData(bufferID, ALFormat.Mono16, data, data.Length * sizeof(short), (int)Globals.SampleRate);
+            short[] data = Util.Rent<short>(_chunkSizeInSamples);
+            GetNextAudioChunk(data, _chunkSizeInSamples);
+            AL.BufferData(bufferID, ALFormat.Mono16, data, (int)_chunkSizeInSamples * sizeof(short), (int)Globals.SampleRate);
             AL.SourceQueueBuffer(_sid, bufferID);
+            Util.Return(data);
         }
 
-        private short[] GetNextAudioChunk()
+        private void GetNextAudioChunk(short[] output, uint numSamples)
         {
-            return DataProvider.GetNextAudioChunk(_chunkSizeInSamples);
+            DataProvider.GetNextAudioChunk(output, numSamples);
         }
     }
 
     public interface StreamingDataProvider
     {
-        short[] GetNextAudioChunk(uint numSamples);
+        void GetNextAudioChunk(short[] output, uint numSamples);
         void SeekTo(uint sample);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Diagnostics;
 
 namespace SynthApp
@@ -122,12 +123,38 @@ namespace SynthApp
         public static short[] FloatToShortNormalized(float[] total)
         {
             short[] normalized = new short[total.Length];
+            FloatToShortNormalized(normalized, total);
+            return normalized;
+        }
+
+        public static T[] Rent<T>(int count)
+        {
+            T[] ret = ArrayPool<T>.Shared.Rent(count);
+            return ret;
+        }
+
+        public static T[] Rent<T>(uint count)
+        {
+            T[] ret = ArrayPool<T>.Shared.Rent((int)count);
+            return ret;
+        }
+
+        public static void Return<T>(T[] array)
+        {
+            ArrayPool<T>.Shared.Return(array, clearArray: true);
+        }
+
+        public static void FloatToShortNormalized(short[] output, float[] total)
+        {
             for (int i = 0; i < total.Length; i++)
             {
-                normalized[i] = DoubleToShort(total[i]);
+                output[i] = DoubleToShort(total[i]);
             }
+        }
 
-            return normalized;
+        public static void Clear<T>(T[] array)
+        {
+            Array.Clear(array, 0, array.Length);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 
 namespace SynthApp
@@ -94,16 +95,17 @@ namespace SynthApp
             _pattern.Duration = PatternTime.Beats(8);
         }
 
-        public short[] GetNextAudioChunk(uint numSamples)
+        public void GetNextAudioChunk(short[] output, uint numSamples)
         {
             if (!Playing)
             {
-                return new short[numSamples];
+                Util.Clear(output);
+                return;
             }
 
             uint start = _finalChunkGenerated;
             uint totalSamplesInPattern = (uint)(_pattern.Duration.TotalBeats * Globals.SamplesPerBeat);
-            float[] total = new float[numSamples];
+            float[] total = Util.Rent<float>(numSamples);
             bool wrapped = false;
             uint beginningSamples = 0;
 
@@ -121,38 +123,43 @@ namespace SynthApp
                     Channel channel = _channels[i];
                     NoteSequence pattern = _pattern.NoteSequences[i];
 
-                    float[] channelOut_End = null;
-                    channelOut_End = channel.Play(pattern, start, endSamples);
+                    float[] channelOut_End = Util.Rent<float>(endSamples);
+                    channel.Play(channelOut_End, pattern, start, endSamples);
 
-                    float[] channelOut_Beginning = null;
-                    channelOut_Beginning = channel.Play(pattern, 0, beginningSamples);
+                    float[] channelOut_Beginning = Util.Rent<float>(beginningSamples);
+                    channel.Play(channelOut_Beginning, pattern, 0, beginningSamples);
 
-                    float[] channelOut = new float[total.Length];
+                    float[] channelOut = Util.Rent<float>(numSamples);
                     channelOut_End.CopyTo(channelOut, 0);
-                    channelOut_Beginning.CopyTo(channelOut, channelOut_End.Length);
+                    channelOut_Beginning.CopyTo(channelOut, (int)endSamples);
                     Util.Mix(channelOut, total, total);
+
+                    Util.Return(channelOut_End);
+                    Util.Return(channelOut_Beginning);
+                    Util.Return(channelOut);
                 }
             }
             else
             {
+                float[] channelOut = Util.Rent<float>(numSamples);
                 for (int i = 0; i < _channels.Count; i++)
                 {
                     Channel channel = _channels[i];
                     NoteSequence pattern = _pattern.NoteSequences[i];
-                    float[] channelOut = channel.Play(pattern, start, numSamples);
+                    channel.Play(channelOut, pattern, start, numSamples);
                     Util.Mix(channelOut, total, total);
                 }
+                Util.Return(channelOut);
             }
 
-            short[] normalized = Util.FloatToShortNormalized(total);
+            Util.FloatToShortNormalized(output, total);
+            Util.Return(total);
 
             _finalChunkGenerated = start + numSamples;
             if (wrapped)
             {
                 _finalChunkGenerated = beginningSamples;
             }
-
-            return normalized;
         }
 
         public void SeekTo(uint sample)

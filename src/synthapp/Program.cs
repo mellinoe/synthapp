@@ -107,6 +107,7 @@ namespace SynthApp
             if (ImGui.Button("Stop"))
             {
                 Sequencer.Playing = false;
+                Sequencer.SeekTo(0);
             }
 
             int chunkSize = (int)s_streamSource.BufferedSamples;

@@ -13,6 +13,6 @@ namespace SynthApp
         public float Gain { get; set; } = 0.7f;
         public bool Muted { get; set; } = false;
 
-        public abstract float[] Play(NoteSequence ns, uint startSample, uint numSamples);
+        public abstract void Play(float[] output, NoteSequence ns, uint startSample, uint numSamples);
     }
 }
