@@ -41,6 +41,8 @@ namespace SynthApp
             s_combiner.Add(Sequencer);
             s_combiner.Add(s_livePlayer);
             s_streamSource = new StreamingAudioSource(s_combiner, 40000);
+            s_streamSource.DataProvider = s_combiner;
+            s_streamSource.Play();
 
             s_keyboardInput = new KeyboardLivePlayInput(s_livePlayer, s_streamSource);
 
@@ -74,8 +76,7 @@ namespace SynthApp
 
             if (ImGui.Button("Play the patterns"))
             {
-                s_streamSource.DataProvider = s_combiner;
-                s_streamSource.Play();
+                Sequencer.Playing = true;
             }
             if (ImGui.Button("Play sine wave at 440 Hz"))
             {
@@ -105,8 +106,7 @@ namespace SynthApp
             }
             if (ImGui.Button("Stop"))
             {
-                Globals.AudioEngine.Stop();
-                s_streamSource.Stop();
+                Sequencer.Playing = false;
             }
 
             int chunkSize = (int)s_streamSource.BufferedSamples;

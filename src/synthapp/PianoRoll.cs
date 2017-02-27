@@ -116,7 +116,7 @@ namespace SynthApp
                     Vector2 pos = GetNoteStartPosition(note) + _viewOffset;
                     Vector2 size = new Vector2(note.Duration.Step * _stepWidth, _pitchHeight);
                     dl.AddRectFilled(pos + gridPos, pos + gridPos + size, Util.Argb(0.75f, 1.0f, 0.2f, 0.2f), 5f);
-                    ImGuiNative.igSetCursorScreenPos(pos + gridPos);
+                    ImGui.SetCursorScreenPos(pos + gridPos);
                     ImGui.Text(note.Pitch.ToString());
                     if (ImGui.IsMouseHoveringRect(pos + gridPos, pos + gridPos + size, true))
                     {
@@ -290,7 +290,7 @@ namespace SynthApp
                     windowPos + new Vector2(0, y + _pitchHeight) + _viewOffset + new Vector2(_pianoKeyWidth, _pitchHeight),
                     Util.Argb(1f, 0.6f, 0.6f, 0.6f),
                     2f);
-                ImGuiNative.igSetCursorScreenPos(windowPos + new Vector2(0, y) + _viewOffset);
+                ImGui.SetCursorScreenPos(windowPos + new Vector2(0, y) + _viewOffset);
                 Pitch p = new Pitch(pitch);
                 ImGui.PushStyleColor(ColorTarget.Text, GetPitchTextColor(p));
                 ImGui.Text(p.ToString());

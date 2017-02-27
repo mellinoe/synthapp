@@ -8,6 +8,7 @@ namespace SynthApp
     {
         private HashSet<Key> _currentlyPressedKeys = new HashSet<Key>();
         private HashSet<Key> _newKeysThisFrame = new HashSet<Key>();
+        private HashSet<Key> _releasedKeysThisFrame = new HashSet<Key>();
 
         private HashSet<MouseButton> _currentlyPressedMouseButtons = new HashSet<MouseButton>();
         private HashSet<MouseButton> _newMouseButtonsThisFrame = new HashSet<MouseButton>();
@@ -24,6 +25,11 @@ namespace SynthApp
             return _newKeysThisFrame.Contains(key);
         }
 
+        public bool GetKeyReleased(Key key)
+        {
+            return _releasedKeysThisFrame.Contains(key);
+        }
+
         public bool GetMouseButton(MouseButton button)
         {
             return _currentlyPressedMouseButtons.Contains(button);
@@ -38,6 +44,7 @@ namespace SynthApp
         {
             _newKeysThisFrame.Clear();
             _newMouseButtonsThisFrame.Clear();
+            _releasedKeysThisFrame.Clear();
 
             MousePosition = snapshot.MousePosition;
             foreach (var ke in snapshot.KeyEvents)
@@ -82,6 +89,7 @@ namespace SynthApp
         {
             _currentlyPressedKeys.Remove(key);
             _newKeysThisFrame.Remove(key);
+            _releasedKeysThisFrame.Add(key);
         }
 
         private void KeyDown(Key key)

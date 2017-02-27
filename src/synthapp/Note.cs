@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace SynthApp
 {
@@ -121,6 +122,13 @@ namespace SynthApp
         public static bool operator !=(PatternTime left, PatternTime right)
         {
             return left.CompareTo(right) != 0;
+        }
+
+        public static PatternTime operator -(PatternTime left, PatternTime right)
+        {
+            Debug.Assert(left >= right);
+            var diff = left.TotalBeats - right.TotalBeats;
+            return Beats((uint)diff);
         }
 
         public override int GetHashCode()

@@ -17,7 +17,7 @@ namespace SynthApp
 
         public long SamplesProcessed => _samplesProcessed + _currentBufferSamplesProcessed;
 
-        public uint BufferedSamples { get; set; } = 10000;
+        public uint BufferedSamples { get; set; } = 5000;
 
         public StreamingDataProvider DataProvider { get => _dataProvider; set => _dataProvider = value; }
 

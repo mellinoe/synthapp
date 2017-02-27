@@ -14,6 +14,8 @@ namespace SynthApp
 
         public IReadOnlyList<Channel> Channels => _channels;
 
+        public bool Playing { get; set; }
+
         public Sequencer()
         {
             var tri = new SimpleOscillatorSynth();
@@ -94,6 +96,11 @@ namespace SynthApp
 
         public short[] GetNextAudioChunk(uint numSamples)
         {
+            if (!Playing)
+            {
+                return new short[numSamples];
+            }
+
             uint start = _finalChunkGenerated;
             uint totalSamplesInPattern = (uint)(_pattern.Duration.TotalBeats * Globals.SamplesPerBeat);
             float[] total = new float[numSamples];
