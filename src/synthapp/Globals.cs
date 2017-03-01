@@ -23,9 +23,5 @@ namespace SynthApp
         /// Samples per second.
         /// </summary>
         public static uint SampleRate { get; set; } = 44100;
-
-        public static AudioEngine AudioEngine { get; } = new AudioEngine();
-
-        public static InputTracker Input { get; } = new InputTracker();
     }
 }

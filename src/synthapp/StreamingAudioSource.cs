@@ -25,7 +25,7 @@ namespace SynthApp
         {
             _sid = AL.GenSource();
             DataProvider = provider;
-            BufferedSamples = BufferedSamples;
+            BufferedSamples = bufferedSamples;
         }
 
         private unsafe void AudioFillLoop()
@@ -69,7 +69,7 @@ namespace SynthApp
 
             _playing = true;
             AL.SourcePlay(_sid);
-            Task.Run(() => AudioFillLoop());
+            Task.Factory.StartNew(() => AudioFillLoop(), TaskCreationOptions.LongRunning);
         }
 
         public unsafe void Stop()

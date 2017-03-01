@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace SynthApp
 {
@@ -19,6 +20,7 @@ namespace SynthApp
             Value = (byte)(octave * 12 + (byte)pitchClass);
         }
 
+        [JsonConstructor]
         public Pitch(byte value)
         {
             Value = value;

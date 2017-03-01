@@ -11,7 +11,7 @@ namespace SynthApp
     {
         private static readonly PatternTime DefaultPatternDuration = PatternTime.Beats(4);
 
-        public List<NoteSequence> NoteSequences { get; }
+        public List<NoteSequence> NoteSequences { get; set; }
 
         public PatternTime Duration { get; set; }
 
@@ -24,6 +24,10 @@ namespace SynthApp
             }
 
             Duration = DefaultPatternDuration;
+        }
+
+        public Pattern()
+        {
         }
     }
 }

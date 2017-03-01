@@ -58,12 +58,12 @@ namespace SynthApp
         {
             foreach (var kvp in _keyMap)
             {
-                if (Globals.Input.GetKeyDown(kvp.Key))
+                if (Application.Instance.Input.GetKeyDown(kvp.Key))
                 {
                     Pitch pitch = kvp.Value;
                     _livePlayer.AddKeyEvent(c, pitch, true);
                 }
-                if (Globals.Input.GetKeyReleased(kvp.Key))
+                if (Application.Instance.Input.GetKeyReleased(kvp.Key))
                 {
                     Pitch pitch = kvp.Value;
                     _livePlayer.AddKeyEvent(c, pitch, false);

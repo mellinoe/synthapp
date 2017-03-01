@@ -10,9 +10,9 @@ namespace SynthApp
 
         private uint _finalChunkGenerated;
 
-        public Pattern Pattern => _pattern;
+        public Pattern Pattern { get => _pattern; set => _pattern = value; }
 
-        public IReadOnlyList<Channel> Channels => _channels;
+        public List<Channel> Channels { get => _channels; set => _channels = value; }
 
         public bool Playing { get; set; }
 

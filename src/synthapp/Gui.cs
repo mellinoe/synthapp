@@ -2,6 +2,7 @@
 using ImGuiNET;
 using Veldrid.Graphics;
 using System.Collections.Generic;
+using System.IO;
 
 namespace SynthApp
 {
@@ -13,6 +14,9 @@ namespace SynthApp
         private readonly HashSet<Channel> _channelWindowsOpen = new HashSet<Channel>();
         private readonly HashSet<Channel> _channelWindowsClosed = new HashSet<Channel>();
         private bool _patternEditorVisible = true;
+
+        // Input fields
+        private TextInputBuffer _projectPathInput = new TextInputBuffer(1024);
 
         public Sequencer Sequencer { get; private set; }
         public KeyboardLivePlayInput KeyboardInput { get; private set; }
@@ -60,13 +64,25 @@ namespace SynthApp
 
         private void DrawMainMenu()
         {
+            string openPopup = null;
             if (ImGui.BeginMainMenuBar())
             {
                 if (ImGui.BeginMenu("File"))
                 {
                     if (ImGui.MenuItem("Open Project"))
                     {
-
+                        openPopup = "###OpenProjectPopup";
+                    }
+                    if (ImGui.MenuItem("Save Project"))
+                    {
+                        if (!string.IsNullOrEmpty(Application.Instance.ProjectContext.FullPath))
+                        {
+                            SaveProjectTo(Application.Instance.ProjectContext.FullPath);
+                        }
+                        else
+                        {
+                            openPopup = "###SaveProjectPopup";
+                        }
                     }
                     ImGui.Separator();
                     if (ImGui.MenuItem("Exit"))
@@ -94,6 +110,74 @@ namespace SynthApp
 
                 ImGui.EndMainMenuBar();
             }
+
+            if (openPopup != null)
+            {
+                ImGui.OpenPopup(openPopup);
+            }
+
+            if (ImGui.BeginPopup("###SaveProjectPopup"))
+            {
+                bool submitted = false;
+                _projectPathInput.StringValue = Application.Instance.ProjectContext.FullPath ?? string.Empty;
+                if (ImGui.InputText("Project File Path", _projectPathInput.Buffer, _projectPathInput.Length, InputTextFlags.EnterReturnsTrue, null))
+                {
+                    submitted = true;
+                    Console.WriteLine("Submitted with value " + _projectPathInput.StringValue);
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Save"))
+                {
+                    submitted = true;
+                }
+                if (submitted)
+                {
+                    string path = _projectPathInput.StringValue;
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        Application.Instance.ProjectContext.FullPath = path;
+                        SaveProjectTo(path);
+                    }
+                }
+                ImGui.EndPopup();
+            }
+
+            if (ImGui.BeginPopup("###OpenProjectPopup"))
+            {
+                bool submitted = false;
+                _projectPathInput.StringValue = Application.Instance.ProjectContext.FullPath ?? string.Empty;
+                if (ImGui.InputText("Project File Path", _projectPathInput.Buffer, _projectPathInput.Length, InputTextFlags.EnterReturnsTrue, null))
+                {
+                    submitted = true;
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Open"))
+                {
+                    submitted = true;
+                }
+                if (submitted)
+                {
+                    string path = _projectPathInput.StringValue;
+                    if (File.Exists(path))
+                    {
+                        Application.Instance.ProjectContext.FullPath = path;
+                        OpenProjectAt(path);
+                    }
+                }
+                ImGui.EndPopup();
+            }
+        }
+
+        private void SaveProjectTo(string fullPath)
+        {
+            Project project = Application.Instance.GetProject();
+            Application.Instance.SerializationServices.SaveTo(project, fullPath);
+        }
+
+        private void OpenProjectAt(string fullPath)
+        {
+            Project project = Application.Instance.SerializationServices.LoadFrom<Project>(fullPath);
+            Application.Instance.LoadProject(project);
         }
 
         public void DrawPattern(Pattern pattern, IReadOnlyList<Channel> channels)

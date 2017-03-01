@@ -1,7 +1,8 @@
 {
   "profiles": {
     "synthapp": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "workingDirectory": "E:\\projects\\synthapp\\bin\\Debug\\synthapp\\netcoreapp1.1"
     }
   }
 }

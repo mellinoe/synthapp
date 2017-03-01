@@ -1,8 +1,10 @@
 ﻿using ImGuiNET;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Veldrid.Graphics;
 using Veldrid.Graphics.Direct3D;
 using Veldrid.Graphics.OpenGL;
@@ -22,9 +24,19 @@ namespace SynthApp
         private readonly AudioStreamCombiner s_combiner;
         private readonly StreamingAudioSource s_streamSource;
         private readonly KeyboardLivePlayInput s_keyboardInput;
+        private Stopwatch _sw;
+        private long _previousFrameTicks;
+        private FrameTimeAverager _fta;
 
         public Sequencer Sequencer { get; }
         public Gui Gui { get; }
+        public SerializationServices SerializationServices { get; }
+        public ProjectContext ProjectContext { get; } = new ProjectContext();
+        public AudioEngine AudioEngine { get; } = new AudioEngine();
+        public InputTracker Input { get; } = new InputTracker();
+
+        public double DesiredFramerate { get; set; } = 60.0;
+        public bool LimitFrameRate { get; set; } = true;
 
         public static Application Instance { get; private set; }
 
@@ -46,7 +58,7 @@ namespace SynthApp
             s_combiner = new AudioStreamCombiner();
             s_combiner.Add(Sequencer);
             s_combiner.Add(s_livePlayer);
-            s_streamSource = new StreamingAudioSource(s_combiner, 40000);
+            s_streamSource = new StreamingAudioSource(s_combiner, 2000);
             s_streamSource.DataProvider = s_combiner;
             s_streamSource.Play();
 
@@ -54,19 +66,36 @@ namespace SynthApp
 
             Gui = new Gui(s_rc, Sequencer, s_keyboardInput, s_livePlayer);
 
+            SerializationServices = new SerializationServices();
+
             Debug.Assert(Instance == null);
             Instance = this;
         }
 
         public void Run()
         {
-            DateTime previousFrameTime = DateTime.Now;
+            _sw = Stopwatch.StartNew();
+            _fta = new FrameTimeAverager(666.666);
+
             while (window.Exists)
             {
-                DateTime newFrameTime = DateTime.Now;
-                float deltaSeconds = (float)(newFrameTime - previousFrameTime).TotalSeconds;
+                double desiredFrameTime = 1000.0 / DesiredFramerate;
+                long currentFrameTicks = _sw.ElapsedTicks;
+                double deltaMilliseconds = (currentFrameTicks - _previousFrameTicks) * (1000.0 / Stopwatch.Frequency);
+
+                while (LimitFrameRate && deltaMilliseconds < desiredFrameTime)
+                {
+                    Thread.Sleep(0);
+                    currentFrameTicks = _sw.ElapsedTicks;
+                    deltaMilliseconds = (currentFrameTicks - _previousFrameTicks) * (1000.0 / Stopwatch.Frequency);
+                }
+                _previousFrameTicks = currentFrameTicks;
+                float deltaSeconds = (float)deltaMilliseconds / 1000.0f;
+                _fta.AddTime(deltaMilliseconds);
+                window.Title = "Synth (" + _fta.CurrentAverageFramesPerSecond.ToString("##.00") + " fps)";
+
                 InputSnapshot snapshot = window.GetInputSnapshot();
-                Globals.Input.UpdateFrameInput(snapshot);
+                Input.UpdateFrameInput(snapshot);
                 s_rc.Viewport = new Viewport(0, 0, s_rc.Window.Width, s_rc.Window.Height);
                 s_rc.ClearBuffer();
                 Update(deltaSeconds, snapshot);
@@ -96,7 +125,7 @@ namespace SynthApp
                     data[i] = (short)(sample * short.MaxValue);
                 }
 
-                Globals.AudioEngine.PlayAudioData(data, Globals.SampleRate);
+                AudioEngine.PlayAudioData(data, Globals.SampleRate);
             }
             if (ImGui.Button("Stop"))
             {
@@ -113,6 +142,21 @@ namespace SynthApp
         private void Draw()
         {
             s_imguiRenderer.Render(s_rc, "Standard");
+        }
+
+        public Project GetProject()
+        {
+            return new Project()
+            {
+                Channels = Sequencer.Channels.ToArray(),
+                Patterns = new[] { Sequencer.Pattern }
+            };
+        }
+
+        public void LoadProject(Project project)
+        {
+            Sequencer.Channels = project.Channels.ToList();
+            Sequencer.Pattern = project.Patterns[0];
         }
     }
 }

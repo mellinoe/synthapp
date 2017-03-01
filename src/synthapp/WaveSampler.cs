@@ -1,20 +1,43 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 
 namespace SynthApp
 {
     public class WaveSampler : Channel
     {
+        private string _waveFilePath;
         private WaveFile _waveFile;
+
+        public string WaveFilePath
+        {
+            get => _waveFilePath;
+            set
+            {
+                _waveFilePath = value;
+                LoadNewWaveFile(value);
+            }
+        }
 
         public WaveSampler(string waveFilePath)
         {
+            _waveFilePath = waveFilePath;
             LoadNewWaveFile(waveFilePath);
         }
 
         public void LoadNewWaveFile(string waveFilePath)
         {
-            using (FileStream fs = File.OpenRead(waveFilePath))
+            string fullPath = null;
+            if (Path.IsPathRooted(waveFilePath))
+            {
+                fullPath = waveFilePath;
+            }
+            else
+            {
+                fullPath = Path.Combine(Application.Instance.ProjectContext.GetAssetRootPath(), waveFilePath);
+            }
+
+            using (FileStream fs = File.OpenRead(fullPath))
             {
                 _waveFile = new WaveFile(fs);
             }
