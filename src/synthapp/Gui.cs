@@ -9,21 +9,27 @@ namespace SynthApp
     {
         private readonly RenderContext _rc;
         private Channel _editedChannel;
-        private PianoRoll _pianoRoll = new PianoRoll();
 
         private readonly HashSet<Channel> _channelWindowsOpen = new HashSet<Channel>();
         private readonly HashSet<Channel> _channelWindowsClosed = new HashSet<Channel>();
         private bool _patternEditorVisible = true;
 
-        public Sequencer Sequencer { get; set; }
-        public KeyboardLivePlayInput KeyboardInput { get; set; }
+        public Sequencer Sequencer { get; private set; }
+        public KeyboardLivePlayInput KeyboardInput { get; private set; }
+        public LiveNotePlayer LivePlayer { get; private set; }
+        public PianoRoll PianoRoll { get; }
 
-        public Gui(RenderContext rc)
+        public Gui(RenderContext rc, Sequencer sequencer, KeyboardLivePlayInput keyboardInput, LiveNotePlayer livePlayer)
         {
             _rc = rc;
             DrawerCache.AddDrawer(new NoteSequenceDrawer());
             DrawerCache.AddDrawer(new PatternTimeDrawer());
             DrawerCache.AddDrawer(new PitchDrawer());
+
+            Sequencer = sequencer;
+            KeyboardInput = keyboardInput;
+            LivePlayer = livePlayer;
+            PianoRoll = new PianoRoll(LivePlayer);
         }
 
         public void DrawGui()
@@ -49,7 +55,7 @@ namespace SynthApp
             }
             _channelWindowsClosed.Clear();
 
-            _pianoRoll.Draw();
+            PianoRoll.Draw();
         }
 
         private void DrawMainMenu()
@@ -128,7 +134,8 @@ namespace SynthApp
                     ImGui.SameLine();
                     if (ImGui.Button($"Piano Roll###PR{i}"))
                     {
-                        _pianoRoll.SetNotes(Sequencer.Pattern.NoteSequences[i].Notes, Sequencer.Pattern.Duration);
+                        PianoRoll.SetSelectedChannel(channel);
+                        PianoRoll.SetNotes(Sequencer.Pattern.NoteSequences[i].Notes, Sequencer.Pattern.Duration);
                         _editedChannel = channel;
                     }
                 }

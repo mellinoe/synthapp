@@ -8,20 +8,20 @@ namespace SynthApp
 {
     public class PianoRoll
     {
+        private readonly LiveNotePlayer _livePlayer;
         private bool _opened = true;
-
         private float _stepWidth = 40f;
         private float _pitchHeight = 20f;
         private byte _topPitch = new Pitch(PitchClass.B, 10).Value;
         private uint _leftmostStep = 0;
         private float _pianoKeyWidth = 60f;
+        private Vector2 _viewOffset;
 
         private const float MinStepWidth = 5f;
         private const float MaxStepWidth = 120f;
 
-        private Vector2 _viewOffset;
-
         private PatternTime _totalDuration = PatternTime.Steps(16);
+        private Channel _selectedChannel;
         private List<Note> _notes = new List<Note>();
         private HashSet<Note> _noteRemovals = new HashSet<Note>();
         private Note _interacting;
@@ -33,14 +33,21 @@ namespace SynthApp
         private Vector2 _dragScrollPos;
         private PatternTime _newNoteDuration = PatternTime.Steps(2);
 
+        public void SetSelectedChannel(Channel channel)
+        {
+            _selectedChannel = channel;
+        }
+
         public void SetNotes(List<Note> notes, PatternTime totalDuration)
         {
             _notes = notes;
             _totalDuration = totalDuration;
         }
 
-        public PianoRoll()
+        public PianoRoll(LiveNotePlayer livePlayer)
         {
+            _livePlayer = livePlayer;
+
             _notes.Add(new Note(PatternTime.Steps(0), PatternTime.Steps(4), new Pitch(43)));
             _notes.Add(new Note(PatternTime.Steps(4), PatternTime.Steps(4), new Pitch(44)));
             _notes.Add(new Note(PatternTime.Steps(8), PatternTime.Steps(4), new Pitch(42)));
@@ -115,10 +122,12 @@ namespace SynthApp
                 {
                     Vector2 pos = GetNoteStartPosition(note) + _viewOffset;
                     Vector2 size = new Vector2(note.Duration.Step * _stepWidth, _pitchHeight);
-                    dl.AddRectFilled(pos + gridPos, pos + gridPos + size, Util.Argb(0.75f, 1.0f, 0.2f, 0.2f), 5f);
+                    bool hovering = ImGui.IsMouseHoveringRect(pos + gridPos, pos + gridPos + size, true);
+                    uint color = hovering ? Util.Argb(0.95f, 1.0f, 0.4f, 0.4f) : Util.Argb(0.75f, 1.0f, 0.2f, 0.2f);
+                    dl.AddRectFilled(pos + gridPos, pos + gridPos + size, color, 5f);
                     ImGui.SetCursorScreenPos(pos + gridPos);
                     ImGui.Text(note.Pitch.ToString());
-                    if (ImGui.IsMouseHoveringRect(pos + gridPos, pos + gridPos + size, true))
+                    if (hovering)
                     {
                         if (io.MouseDown[0] && !_resizing && !_dragging)
                         {
@@ -328,6 +337,12 @@ namespace SynthApp
         private uint GetColor(byte pitchValue, bool left)
         {
             Pitch p = new Pitch(pitchValue);
+            
+            if (_selectedChannel != null && _livePlayer.IsKeyPressed(_selectedChannel, p))
+            {
+                return Util.Argb(1f, 0.95f, 0.4f, 0.4f);
+            }
+
             switch (p.PitchClass)
             {
                 case PitchClass.CSharp:

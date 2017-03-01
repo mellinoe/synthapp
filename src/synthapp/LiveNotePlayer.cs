@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace SynthApp
 {
@@ -9,7 +10,10 @@ namespace SynthApp
     {
         private uint _finalChunkGenerated;
         private ConcurrentQueue<KeyboardNoteEvent> _events = new ConcurrentQueue<KeyboardNoteEvent>();
-        private Dictionary<Channel, LivePlayerChannelState> _sequences = new Dictionary<Channel, LivePlayerChannelState>();
+        private Dictionary<Channel, LivePlayerChannelState> _channelStates = new Dictionary<Channel, LivePlayerChannelState>();
+
+        private HashSet<Pitch> _currentKeys = new HashSet<Pitch>();
+        private HashSet<Pitch> _nextKeys = new HashSet<Pitch>();
 
         public uint SamplePlaybackLocation => _finalChunkGenerated;
 
@@ -18,12 +22,17 @@ namespace SynthApp
             _events.Enqueue(new KeyboardNoteEvent(c, p, isKeyDown));
         }
 
+        public bool IsKeyPressed(Channel c, Pitch p)
+        {
+            return _currentKeys.Contains(p);
+        }
+
         private LivePlayerChannelState GetPlayerState(Channel c)
         {
-            if (!_sequences.TryGetValue(c, out LivePlayerChannelState ns))
+            if (!_channelStates.TryGetValue(c, out LivePlayerChannelState ns))
             {
                 ns = new LivePlayerChannelState();
-                _sequences.Add(c, ns);
+                _channelStates.Add(c, ns);
             }
 
             return ns;
@@ -36,8 +45,10 @@ namespace SynthApp
                 HandleEvent(kne, PatternTime.Samples(_finalChunkGenerated, Globals.SampleRate, Globals.BeatsPerMinute));
             }
 
+            UpdateKeySets();
+
             bool empty = true;
-            foreach (var kvp in _sequences)
+            foreach (var kvp in _channelStates)
             {
                 if (kvp.Value.ActiveNotes.Count != 0)
                 {
@@ -50,7 +61,7 @@ namespace SynthApp
                 if (_finalChunkGenerated > 0)
                 {
                     _finalChunkGenerated = 0;
-                    foreach (var kvp in _sequences)
+                    foreach (var kvp in _channelStates)
                     {
                         kvp.Value.ClearAll();
                     }
@@ -59,7 +70,7 @@ namespace SynthApp
             }
 
             float[] data = new float[numSamples];
-            foreach (var kvp in _sequences)
+            foreach (var kvp in _channelStates)
             {
                 Channel c = kvp.Key;
                 LivePlayerChannelState lpcs = kvp.Value;
@@ -71,6 +82,21 @@ namespace SynthApp
             _finalChunkGenerated += numSamples;
 
             return Util.FloatToShortNormalized(data);
+        }
+
+        private void UpdateKeySets()
+        {
+            HashSet<Pitch> next = _nextKeys;
+            next.Clear();
+            foreach (var kvp in _channelStates)
+            {
+                foreach (var note in kvp.Value.ActiveNotes)
+                {
+                    next.Add(note.Pitch);
+                }
+            }
+
+            Interlocked.Exchange(ref _currentKeys, next);
         }
 
         private void HandleEvent(KeyboardNoteEvent kne, PatternTime currentTime)
@@ -89,7 +115,7 @@ namespace SynthApp
         public void SeekTo(uint sample)
         {
             _finalChunkGenerated = 0;
-            _sequences.Clear();
+            _channelStates.Clear();
         }
     }
 
@@ -109,6 +135,7 @@ namespace SynthApp
             }
 
             Note newNote = new Note(time, PatternTime.Beats(100), pitch);
+            newNote.Velocity = 0.75f;
             ActiveNotes.Add(newNote);
             Sequence.Notes.Add(newNote);
         }

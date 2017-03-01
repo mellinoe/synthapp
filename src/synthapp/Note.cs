@@ -26,7 +26,7 @@ namespace SynthApp
         /// <summary>
         /// The relative volume of the note, in the range [0, 1].
         /// </summary>
-        public float Velocity { get; set; } = 1.0f;
+        public float Velocity { get; set; } = 0.7f;
 
         /// <summary>
         /// The left-right position of the note, ranging from -1.0 (100% left) to 0.0 (centered) to 1.0 (100% right).

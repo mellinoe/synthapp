@@ -10,14 +10,14 @@ namespace SynthApp
         private readonly int _sid;
         private bool _playing;
         private StreamingDataProvider _dataProvider;
-        private uint _chunkSizeInSamples = 400;
+        private uint _chunkSizeInSamples = 250;
         private readonly List<int> _cachedBufferIDs = new List<int>();
         private int _currentBufferSamplesProcessed;
         private long _samplesProcessed;
 
         public long SamplesProcessed => _samplesProcessed + _currentBufferSamplesProcessed;
 
-        public uint BufferedSamples { get; set; } = 5000;
+        public uint BufferedSamples { get; set; } = 2000;
 
         public StreamingDataProvider DataProvider { get => _dataProvider; set => _dataProvider = value; }
 

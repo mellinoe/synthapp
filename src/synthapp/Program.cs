@@ -46,9 +46,7 @@ namespace SynthApp
 
             s_keyboardInput = new KeyboardLivePlayInput(s_livePlayer, s_streamSource);
 
-            Gui = new Gui(s_rc);
-            Gui.Sequencer = Sequencer;
-            Gui.KeyboardInput = s_keyboardInput;
+            Gui = new Gui(s_rc, Sequencer, s_keyboardInput, s_livePlayer);
 
             while (window.Exists)
             {
