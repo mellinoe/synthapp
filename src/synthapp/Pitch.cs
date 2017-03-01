@@ -56,6 +56,11 @@ namespace SynthApp
             return Value.Equals(other.Value);
         }
 
+        public override int GetHashCode()
+        {
+            return Value;
+        }
+
         public override string ToString()
         {
             return $"{WithSymbol(PitchClass)}{Octave}";

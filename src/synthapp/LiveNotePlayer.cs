@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
@@ -14,6 +15,8 @@ namespace SynthApp
 
         private HashSet<Pitch> _currentKeys = new HashSet<Pitch>();
         private HashSet<Pitch> _nextKeys = new HashSet<Pitch>();
+
+        private readonly object _lock = new object();
 
         public uint SamplePlaybackLocation => _finalChunkGenerated;
 
@@ -96,7 +99,7 @@ namespace SynthApp
                 }
             }
 
-            Interlocked.Exchange(ref _currentKeys, next);
+            _nextKeys = Interlocked.Exchange(ref _currentKeys, next);
         }
 
         private void HandleEvent(KeyboardNoteEvent kne, PatternTime currentTime)

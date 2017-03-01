@@ -340,7 +340,7 @@ namespace SynthApp
             
             if (_selectedChannel != null && _livePlayer.IsKeyPressed(_selectedChannel, p))
             {
-                return Util.Argb(1f, 0.95f, 0.4f, 0.4f);
+                return Util.Argb(1f, 1f, 0.58f, 0f);
             }
 
             switch (p.PitchClass)
