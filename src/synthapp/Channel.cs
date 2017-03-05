@@ -10,7 +10,7 @@ namespace SynthApp
         public int ID { get; } = Globals.GetNextGlobalID();
 
         public string Name { get; set; } = "New Channel";
-        public float Gain { get; set; } = 0.7f;
+        public float Gain { get; set; } = 0.55f;
         public bool Muted { get; set; } = false;
 
         public abstract float[] Play(NoteSequence ns, uint startSample, uint numSamples);

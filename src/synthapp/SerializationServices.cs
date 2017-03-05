@@ -32,7 +32,7 @@ namespace SynthApp
             }
         }
 
-        public T LoadFrom<T>(string path)
+        public T Load<T>(string path)
         {
             using (var fs = File.OpenRead(path))
             using (var sr = new StreamReader(fs))

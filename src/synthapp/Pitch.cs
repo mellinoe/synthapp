@@ -53,9 +53,44 @@ namespace SynthApp
             return Value.CompareTo(other.Value);
         }
 
+        public static bool operator >(Pitch left, Pitch right)
+        {
+            return left.Value > right.Value;
+        }
+
+        public static bool operator <(Pitch left, Pitch right)
+        {
+            return left.Value < right.Value;
+        }
+
+        public static bool operator >=(Pitch left, Pitch right)
+        {
+            return left.Value >= right.Value;
+        }
+
+        public static bool operator <=(Pitch left, Pitch right)
+        {
+            return left.Value <= right.Value;
+        }
+
+        public static bool operator ==(Pitch left, Pitch right)
+        {
+            return left.Value == right.Value;
+        }
+
+        public static bool operator !=(Pitch left, Pitch right)
+        {
+            return left.Value != right.Value;
+        }
+
         public bool Equals(Pitch other)
         {
             return Value.Equals(other.Value);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Pitch p && Equals(p);
         }
 
         public override int GetHashCode()

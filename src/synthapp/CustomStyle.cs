@@ -89,8 +89,8 @@ namespace SynthApp
             style.SetColor(ColorTarget.TextDisabled, new Vector4(0.60f, 0.60f, 0.60f, 1.00f));
             style.SetColor(ColorTarget.WindowBg, new Vector4(0.94f, 0.94f, 0.94f, 0.94f));
             style.SetColor(ColorTarget.ChildWindowBg, new Vector4(0.00f, 0.00f, 0.00f, 0.00f));
-            //style.SetColor(ColorTarget.PopupBg, new Vector4(1.00f, 1.00f, 1.00f, 0.94f));
-            style.SetColor(ColorTarget.Border, new Vector4(0.00f, 0.00f, 0.00f, 0.39f));
+            // style.SetColor(ColorTarget.PopupBg, new Vector4(1.00f, 1.00f, 1.00f, 0.94f));
+            style.SetColor(ColorTarget.Border, new Vector4(1.00f, 1.00f, 1.00f, 1f));
             style.SetColor(ColorTarget.BorderShadow, new Vector4(1.00f, 1.00f, 1.00f, 0.10f));
             style.SetColor(ColorTarget.FrameBg, new Vector4(1.00f, 1.00f, 1.00f, 0.94f));
             style.SetColor(ColorTarget.FrameBgHovered, new Vector4(0.26f, 0.59f, 0.98f, 0.40f));

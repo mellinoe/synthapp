@@ -1,8 +1,9 @@
 ﻿using ImGuiNET;
 using Veldrid.Graphics;
 
-namespace SynthApp
+namespace SynthApp.Widgets
 {
+    [Widget]
     public class PitchDrawer : Drawer<Pitch>
     {
         private readonly EnumDrawer _pitchClassDrawer = new EnumDrawer(typeof(PitchClass));

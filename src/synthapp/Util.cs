@@ -1,5 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Numerics;
+using System.Reflection;
 
 namespace SynthApp
 {
@@ -14,6 +19,19 @@ namespace SynthApp
         {
             value = Clamp(value, -1, 1);
             return (ushort)((value * 0.5 + 0.5) * ushort.MaxValue);
+        }
+
+        public static bool IsValidPath(string file)
+        {
+            try
+            {
+                Path.GetFullPath(file);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -40,6 +58,20 @@ namespace SynthApp
             else
             {
                 return value;
+            }
+        }
+
+        public static bool TryGetFileInfo(string fileName, out FileInfo realFile)
+        {
+            try
+            {
+                realFile = new FileInfo(fileName);
+                return true;
+            }
+            catch
+            {
+                realFile = null;
+                return false;
             }
         }
 
@@ -119,6 +151,12 @@ namespace SynthApp
                 );
         }
 
+
+        public static uint RgbaToArgb(Vector4 color)
+        {
+            return Argb(color.W, color.X, color.Y, color.Z);
+        }
+
         public static short[] FloatToShortNormalized(float[] total)
         {
             short[] normalized = new short[total.Length];
@@ -128,6 +166,26 @@ namespace SynthApp
             }
 
             return normalized;
+        }
+
+        public static PatternTime CalculateFinalNoteEndTime(List<Note> notes)
+        {
+            PatternTime latest = PatternTime.Zero;
+            foreach (Note n in notes)
+            {
+                PatternTime noteEnd = n.StartTime + n.Duration;
+                if (noteEnd > latest)
+                {
+                    latest = noteEnd;
+                }
+            }
+
+            return latest;
+        }
+
+        public static Type[] GetTypesWithAttribute(Assembly assembly, Type attributeType)
+        {
+            return assembly.DefinedTypes.Where(ti => ti.IsDefined(attributeType)).Select(ti => ti.AsType()).ToArray();
         }
     }
 }

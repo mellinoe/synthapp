@@ -3,13 +3,16 @@ using ImGuiNET;
 using Veldrid.Graphics;
 using System.Collections.Generic;
 using System.IO;
+using SynthApp.Widgets;
+using System.Numerics;
+using Veldrid.Platform;
+using System.Reflection;
 
 namespace SynthApp
 {
     public class Gui
     {
         private readonly RenderContext _rc;
-        private Channel _editedChannel;
 
         private readonly HashSet<Channel> _channelWindowsOpen = new HashSet<Channel>();
         private readonly HashSet<Channel> _channelWindowsClosed = new HashSet<Channel>();
@@ -26,9 +29,10 @@ namespace SynthApp
         public Gui(RenderContext rc, Sequencer sequencer, KeyboardLivePlayInput keyboardInput, LiveNotePlayer livePlayer)
         {
             _rc = rc;
-            DrawerCache.AddDrawer(new NoteSequenceDrawer());
-            DrawerCache.AddDrawer(new PatternTimeDrawer());
-            DrawerCache.AddDrawer(new PitchDrawer());
+            foreach (var type in Util.GetTypesWithAttribute(typeof(Gui).GetTypeInfo().Assembly, typeof(WidgetAttribute)))
+            {
+                DrawerCache.AddDrawer((Drawer)Activator.CreateInstance(type));
+            }
 
             Sequencer = sequencer;
             KeyboardInput = keyboardInput;
@@ -45,11 +49,12 @@ namespace SynthApp
                 DrawChannelWindow(channel);
             }
 
-            DrawPattern(Sequencer.Pattern, Sequencer.Channels);
+            Application appInstance = Application.Instance;
+            DrawPattern(appInstance.Project.Patterns[0], appInstance.Project.Channels);
 
-            if (_editedChannel != null)
+            if (appInstance.SelectedChannel != null)
             {
-                KeyboardInput.Play(_editedChannel);
+                KeyboardInput.Play(appInstance.SelectedChannel);
             }
 
             // Cleanup
@@ -77,7 +82,7 @@ namespace SynthApp
                     {
                         if (!string.IsNullOrEmpty(Application.Instance.ProjectContext.FullPath))
                         {
-                            SaveProjectTo(Application.Instance.ProjectContext.FullPath);
+                            Application.Instance.SaveCurrentProject();
                         }
                         else
                         {
@@ -160,24 +165,24 @@ namespace SynthApp
                     string path = _projectPathInput.StringValue;
                     if (File.Exists(path))
                     {
-                        Application.Instance.ProjectContext.FullPath = path;
-                        OpenProjectAt(path);
+                        Application.Instance.LoadProject(path);
                     }
                 }
                 ImGui.EndPopup();
+            }
+
+            var input = Application.Instance.Input;
+            if (input.GetKeyDown(Key.ControlLeft) && input.GetKeyDown(Key.S))
+            {
+                Application.Instance.SaveCurrentProject();
             }
         }
 
         private void SaveProjectTo(string fullPath)
         {
-            Project project = Application.Instance.GetProject();
+            Project project = Application.Instance.Project;
             Application.Instance.SerializationServices.SaveTo(project, fullPath);
-        }
-
-        private void OpenProjectAt(string fullPath)
-        {
-            Project project = Application.Instance.SerializationServices.LoadFrom<Project>(fullPath);
-            Application.Instance.LoadProject(project);
+            Application.Instance.ProjectContext.FullPath = fullPath;
         }
 
         public void DrawPattern(Pattern pattern, IReadOnlyList<Channel> channels)
@@ -185,7 +190,7 @@ namespace SynthApp
             if (ImGui.BeginWindow(
                 "Pattern Editor",
                 ref _patternEditorVisible,
-                WindowFlags.NoCollapse | WindowFlags.MenuBar))
+                WindowFlags.NoCollapse | WindowFlags.MenuBar | WindowFlags.AlwaysAutoResize))
             {
                 if (ImGui.BeginMenuBar())
                 {
@@ -206,24 +211,54 @@ namespace SynthApp
                     ImGui.EndMenuBar();
                 }
 
-                ImGui.PushID("ChannelList");
                 for (int i = 0; i < channels.Count; i++)
                 {
+                    ImGui.PushID("ChannelList" + i);
                     Channel channel = channels[i];
                     if (ImGui.Button($"[Channel {i}] {channel.Name}"))
                     {
-                        _editedChannel = channel;
                         OpenChannelWindow(channel);
                     }
-                    ImGui.SameLine();
-                    if (ImGui.Button($"Piano Roll###PR{i}"))
+                    NoteSequence ns = Application.Instance.Project.Patterns[0].NoteSequences[i];
+                    uint patternLength = Application.Instance.Project.Patterns[0].CalculateFinalNoteEndTime().Step;
+                    if (ImGui.BeginPopupContextItem($"{i}_C", 1))
                     {
-                        PianoRoll.SetSelectedChannel(channel);
-                        PianoRoll.SetNotes(Sequencer.Pattern.NoteSequences[i].Notes, Sequencer.Pattern.Duration);
-                        _editedChannel = channel;
+                        if (ImGui.Selectable($"Piano Roll###PR{i}"))
+                        {
+                            ns.UsesPianoRoll = true;
+                            Application.Instance.SelectedChannelIndex = i;
+                        }
+
+                        ImGui.EndPopup();
                     }
+
+                    if (ns.Notes.Count == 0)
+                    {
+                        ns.UsesPianoRoll = false;
+                    }
+
+                    if (!ns.UsesPianoRoll)
+                    {
+                        ImGui.SameLine();
+                        if (DrumPatternSequencer.DrawDrumSequencer((uint)i, ns, 16, patternLength, true))
+                        {
+                            Application.Instance.SelectedChannelIndex = i;
+                        }
+                    }
+                    else
+                    {
+                        ImGui.SameLine();
+                        if (PianoRoll.DrawPreviewOnly(ns, patternLength, DrumPatternSequencer.GetFrameSize(16), false))
+                        {
+                            Application.Instance.SelectedChannelIndex = i;
+                            PianoRoll.Focus();
+                        }
+                        ImGui.SameLine();
+                        ImGui.InvisibleButton("FAKEBUTTON", DrumPatternSequencer.GetFrameSize(16));
+                    }
+
+                    ImGui.PopID();
                 }
-                ImGui.PopID();
             }
             ImGui.EndWindow();
         }
@@ -248,7 +283,7 @@ namespace SynthApp
         private void DrawChannelWindow(Channel channel)
         {
             bool opened = true;
-            if (ImGui.BeginWindow($"{channel.Name}###ChannelWindow{channel.ID}", ref opened, WindowFlags.Default))
+            if (ImGui.BeginWindow($"{channel.Name}###ChannelWindow{channel.ID}", ref opened, WindowFlags.AlwaysAutoResize | WindowFlags.NoCollapse))
             {
                 var drawer = DrawerCache.GetDrawer(channel.GetType());
                 object o = channel;

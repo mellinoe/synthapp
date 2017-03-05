@@ -32,8 +32,11 @@ namespace SynthApp
         public Gui Gui { get; }
         public SerializationServices SerializationServices { get; }
         public ProjectContext ProjectContext { get; } = new ProjectContext();
+        public Project Project { get; private set; }
         public AudioEngine AudioEngine { get; } = new AudioEngine();
         public InputTracker Input { get; } = new InputTracker();
+        public int SelectedChannelIndex { get; set; }
+        public Channel SelectedChannel => Project.Channels[SelectedChannelIndex];
 
         public double DesiredFramerate { get; set; } = 60.0;
         public bool LimitFrameRate { get; set; } = true;
@@ -68,6 +71,17 @@ namespace SynthApp
 
             SerializationServices = new SerializationServices();
 
+            string latestProject = SynthAppPreferences.Instance.GetLastOpenedProject();
+            if (latestProject != null)
+            {
+                LoadProject(latestProject);
+            }
+            else
+            {
+                Project = Project.CreateDefault();
+            }
+
+            Debug.Assert(Project != null);
             Debug.Assert(Instance == null);
             Instance = this;
         }
@@ -130,6 +144,7 @@ namespace SynthApp
             if (ImGui.Button("Stop"))
             {
                 Sequencer.Playing = false;
+                Sequencer.SeekTo(0);
             }
 
             float bpm = (float)Globals.BeatsPerMinute;
@@ -144,19 +159,17 @@ namespace SynthApp
             s_imguiRenderer.Render(s_rc, "Standard");
         }
 
-        public Project GetProject()
+        public void LoadProject(string path)
         {
-            return new Project()
-            {
-                Channels = Sequencer.Channels.ToArray(),
-                Patterns = new[] { Sequencer.Pattern }
-            };
+            Project = SerializationServices.Load<Project>(path);
+            ProjectContext.FullPath = path;
+            SynthAppPreferences.Instance.SetLatestProject(path);
         }
 
-        public void LoadProject(Project project)
+        public void SaveCurrentProject()
         {
-            Sequencer.Channels = project.Channels.ToList();
-            Sequencer.Pattern = project.Patterns[0];
+            Debug.Assert(ProjectContext.FullPath != null);
+            SerializationServices.SaveTo(Project, ProjectContext.FullPath);
         }
     }
 }

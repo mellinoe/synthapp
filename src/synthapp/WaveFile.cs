@@ -9,6 +9,8 @@ namespace SynthApp
 {
     public class WaveFile
     {
+        public static WaveFile Empty { get; } = CreateNullWaveFile();
+
         public byte[] Data { get; }
         public ALFormat Format { get; }
         public int SizeInBytes { get; }
@@ -22,19 +24,19 @@ namespace SynthApp
                 string id = Encoding.ASCII.GetString(riffChunkDescriptor.ChunkID, 4);
                 if (id != "RIFF")
                 {
-                    throw new InvalidOperationException("Not a valid wave file ID: " + id);
+                    throw new WaveFileLoadException("Not a valid wave file ID: " + id);
                 }
                 string format = Encoding.ASCII.GetString(riffChunkDescriptor.Format, 4);
                 if (format != "WAVE")
                 {
-                    throw new InvalidOperationException("Not a valid wave file format : " + format);
+                    throw new WaveFileLoadException("Not a valid wave file format : " + format);
                 }
                 
                 FmtSubChunk fmtSubChunk = br.ReadStruct<FmtSubChunk>();
                 string fmtChunkID = Encoding.ASCII.GetString(fmtSubChunk.Subchunk1ID, 4);
                 if (fmtChunkID != "fmt ")
                 {
-                    throw new InvalidOperationException("Not a supported fmt sub-chunk ID: " + fmtChunkID);
+                    throw new WaveFileLoadException("Not a supported fmt sub-chunk ID: " + fmtChunkID);
                 }
 
                 Format = MapFormat(fmtSubChunk.NumChannels, fmtSubChunk.BitsPerSample);
@@ -62,12 +64,12 @@ namespace SynthApp
                 }
                 else
                 {
-                    throw new InvalidOperationException("Unsupported bit depth in wave file: " + bitsPerSample);
+                    throw new WaveFileLoadException("Unsupported bit depth in wave file: " + bitsPerSample);
                 }
             }
             else
             {
-                throw new InvalidOperationException("Unsupported number of channels in wave file: " + numChannels);
+                throw new WaveFileLoadException("Unsupported number of channels in wave file: " + numChannels);
             }
         }
 
@@ -91,6 +93,19 @@ namespace SynthApp
             public short BlockAlign;
             public short BitsPerSample;
         }
+
+        private static WaveFile CreateNullWaveFile()
+        {
+            return new WaveFile(new byte[1], ALFormat.Mono8, 1, 1);
+        }
+
+        private WaveFile(byte[] data, ALFormat format, int sizeInBytes, int frequency)
+        {
+            Data = data;
+            Format = format;
+            SizeInBytes = sizeInBytes;
+            Frequency = frequency;
+        }
     }
 
     public static class BinaryReaderExtensions
@@ -109,6 +124,13 @@ namespace SynthApp
             }
 
             return Unsafe.Read<T>(data);
+        }
+    }
+
+    public class WaveFileLoadException : Exception
+    {
+        public WaveFileLoadException(string message) : base(message)
+        {
         }
     }
 }

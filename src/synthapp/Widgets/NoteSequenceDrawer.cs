@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using Veldrid.Graphics;
 
-namespace SynthApp
+namespace SynthApp.Widgets
 {
+    [Widget]
     public class NoteSequenceDrawer : Drawer<NoteSequence>
     {
         public override bool Draw(string label, ref NoteSequence ns, RenderContext rc)

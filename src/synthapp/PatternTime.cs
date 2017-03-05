@@ -26,6 +26,7 @@ namespace SynthApp
 
         public static PatternTime Steps(uint steps) => new PatternTime(steps, 0);
         public static PatternTime Beats(uint beats) => new PatternTime(beats * 4, 0);
+        public static PatternTime Beats(double beats) => new PatternTime((uint)(beats * 4), 0);
 
         public static PatternTime Samples(uint samples, uint sampleRate, double beatsPerMinute)
         {
@@ -76,6 +77,12 @@ namespace SynthApp
             return left.CompareTo(right) == 0;
         }
 
+        internal static PatternTime RoundToUpperBar(PatternTime duration)
+        {
+            double beats = duration.TotalBeats;
+            return PatternTime.Beats(4 * (uint)(Math.Ceiling(beats / 4.0)));
+        }
+
         public static bool operator !=(PatternTime left, PatternTime right)
         {
             return left.CompareTo(right) != 0;
@@ -83,9 +90,14 @@ namespace SynthApp
 
         public static PatternTime operator -(PatternTime left, PatternTime right)
         {
-            Debug.Assert(left >= right);
             var diff = left.TotalBeats - right.TotalBeats;
             return Beats((uint)diff);
+        }
+
+        public static PatternTime operator +(PatternTime left, PatternTime right)
+        {
+            var sum = left.TotalBeats + right.TotalBeats;
+            return Beats(sum);
         }
 
         public override int GetHashCode()

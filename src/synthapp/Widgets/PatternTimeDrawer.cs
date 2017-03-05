@@ -1,8 +1,9 @@
 ﻿using ImGuiNET;
 using Veldrid.Graphics;
 
-namespace SynthApp
+namespace SynthApp.Widgets
 {
+    [Widget]
     public class PatternTimeDrawer : Drawer<PatternTime>
     {
         public override bool Draw(string label, ref PatternTime pt, RenderContext rc)

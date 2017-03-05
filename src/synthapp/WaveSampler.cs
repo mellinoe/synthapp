@@ -27,6 +27,12 @@ namespace SynthApp
 
         public void LoadNewWaveFile(string waveFilePath)
         {
+            if (!Util.IsValidPath(waveFilePath))
+            {
+                _waveFile = WaveFile.Empty;
+                return;
+            }
+
             string fullPath = null;
             if (Path.IsPathRooted(waveFilePath))
             {
@@ -36,15 +42,28 @@ namespace SynthApp
             {
                 fullPath = Path.Combine(Application.Instance.ProjectContext.GetAssetRootPath(), waveFilePath);
             }
-
-            using (FileStream fs = File.OpenRead(fullPath))
+            if (!File.Exists(fullPath))
             {
-                _waveFile = new WaveFile(fs);
+                _waveFile = WaveFile.Empty;
             }
-
-            if ((uint)_waveFile.Frequency != Globals.SampleRate)
+            else
             {
-                throw new InvalidOperationException("Sample rate of " + _waveFile.Frequency + " does not match one in use.");
+                using (FileStream fs = File.OpenRead(fullPath))
+                {
+                    try
+                    {
+                        _waveFile = new WaveFile(fs);
+                    }
+                    catch (WaveFileLoadException)
+                    {
+                        _waveFile = WaveFile.Empty;
+                    }
+                }
+
+                if ((uint)_waveFile.Frequency != Globals.SampleRate)
+                {
+                    throw new InvalidOperationException("Sample rate of " + _waveFile.Frequency + " does not match one in use.");
+                }
             }
         }
 
