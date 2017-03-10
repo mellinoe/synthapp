@@ -389,7 +389,22 @@ namespace SynthApp
             {
                 float maxHeight = size.Y - 10f;
                 float actualHeight = (n.Velocity / 1.0f) * maxHeight;
-                dl.AddLine(new Vector2(startX, bottomY - 5), new Vector2(startX, bottomY - actualHeight), Util.Argb(1, 1, 0, 0), 6f);
+                Vector2 lineTop = new Vector2(startX, bottomY - actualHeight);
+                Vector2 lineBottom = new Vector2(startX, bottomY - 5);
+                dl.AddLine(lineBottom, lineTop, Util.Argb(1, 1, 0, 0), 6f);
+                dl.AddRectFilled(lineTop - new Vector2(3, 3), lineTop + new Vector2(3, 3), Util.Argb(1, 1, 1, 1), 1f);
+                Vector2 clickSize = new Vector2(5, 5);
+                if (ImGui.IsMouseHoveringRect(new Vector2(startX, bottomY - maxHeight) - clickSize, new Vector2(startX, bottomY - 5) + clickSize, true))
+                {
+                    ImGui.SetTooltip("Velocity: " + n.Velocity.ToString());
+                    if (ImGui.IsMouseDown(0))
+                    {
+                        float mousePosY = ImGui.GetMousePos().Y;
+                        float diff = bottomY - mousePosY;
+                        float newVelocity = Util.Clamp(diff / maxHeight, 0f, 1f);
+                        n.Velocity = newVelocity;
+                    }
+                }
             }
 
             dl.PopClipRect();
