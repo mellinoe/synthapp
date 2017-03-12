@@ -128,19 +128,6 @@ namespace SynthApp
             {
                 Sequencer.Playing = true;
             }
-            if (ImGui.Button("Play sine wave at 440 Hz"))
-            {
-                short[] data = new short[3 * Globals.SampleRate];
-                for (int i = 0; i < data.Length; i++)
-                {
-                    double t = i * 440 / (double)Globals.SampleRate;
-                    t *= 2 * Math.PI;
-                    double sample = Math.Sin(t);
-                    data[i] = (short)(sample * short.MaxValue);
-                }
-
-                AudioEngine.PlayAudioData(data, Globals.SampleRate);
-            }
             if (ImGui.Button("Stop"))
             {
                 Sequencer.Playing = false;
