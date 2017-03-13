@@ -1,4 +1,6 @@
-﻿namespace SynthApp
+﻿using Newtonsoft.Json;
+
+namespace SynthApp
 {
     /// <summary>
     /// Represents a single note within a pattern.
@@ -30,12 +32,31 @@
         /// </summary>
         public double Pan { get; set; } = 0.0;
 
+        public PatternTime EndTime => StartTime + Duration;
+
         public Note(PatternTime start, PatternTime duration, Pitch pitch)
         {
             StartTime = start;
             Duration = duration;
             Pitch = pitch;
         }
+
+        public Note(Note note)
+            : this(note.StartTime, note.Duration, note.Pitch)
+        {
+            Velocity = note.Velocity;
+            Pan = note.Pan;
+        }
+
+        public Note(Note note, PatternTime startOffset)
+            : this(note.StartTime + startOffset, note.Duration, note.Pitch)
+        {
+            Velocity = note.Velocity;
+            Pan = note.Pan;
+        }
+
+        [JsonConstructor]
+        public Note() { }
 
         public override string ToString()
         {

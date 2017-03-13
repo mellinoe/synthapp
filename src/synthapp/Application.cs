@@ -56,7 +56,18 @@ namespace SynthApp
             s_imguiRenderer = new ImGuiRenderer(s_rc, window.NativeWindow);
             CustomStyle.ActivateStyle2(true, 1f);
 
-            Sequencer = new Sequencer();
+            SerializationServices = new SerializationServices();
+            string latestProject = SynthAppPreferences.Instance.GetLastOpenedProject();
+            if (latestProject != null)
+            {
+                LoadProject(latestProject);
+            }
+            else
+            {
+                Project = Project.CreateDefault();
+            }
+
+            Sequencer = new Sequencer(Project.Channels.Length);
             s_livePlayer = new LiveNotePlayer();
             s_combiner = new AudioStreamCombiner();
             s_combiner.Add(Sequencer);
@@ -68,18 +79,6 @@ namespace SynthApp
             s_keyboardInput = new KeyboardLivePlayInput(s_livePlayer, s_streamSource);
 
             Gui = new Gui(s_rc, Sequencer, s_keyboardInput, s_livePlayer);
-
-            SerializationServices = new SerializationServices();
-
-            string latestProject = SynthAppPreferences.Instance.GetLastOpenedProject();
-            if (latestProject != null)
-            {
-                LoadProject(latestProject);
-            }
-            else
-            {
-                Project = Project.CreateDefault();
-            }
 
             Debug.Assert(Project != null);
             Debug.Assert(Instance == null);
@@ -130,8 +129,7 @@ namespace SynthApp
             }
             if (ImGui.Button("Stop"))
             {
-                Sequencer.Playing = false;
-                Sequencer.SeekTo(0);
+                Sequencer.Stop();
             }
 
             float bpm = (float)Globals.BeatsPerMinute;

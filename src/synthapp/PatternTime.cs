@@ -40,6 +40,13 @@ namespace SynthApp
             return new PatternTime((uint)totalSteps, ticks);
         }
 
+        public double ToSamples(uint sampleRate, double beatsPerMinute)
+        {
+            double SecondsPerBeat = 60 / beatsPerMinute;
+            double SamplesPerBeat = sampleRate * SecondsPerBeat;
+            return TotalBeats * SamplesPerBeat;
+        }
+
         public int CompareTo(PatternTime other)
         {
             int step = Step.CompareTo(other.Step);
