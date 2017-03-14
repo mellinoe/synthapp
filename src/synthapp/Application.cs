@@ -45,6 +45,8 @@ namespace SynthApp
 
         public Application()
         {
+            Debug.Assert(Instance == null);
+            Instance = this;
             window = new DedicatedThreadWindow(960, 540, WindowState.Maximized);
             window.Title = "Synth";
             s_rc = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -67,11 +69,10 @@ namespace SynthApp
                 Project = Project.CreateDefault();
             }
 
-            Sequencer = new Sequencer(Project.Channels.Length);
             s_livePlayer = new LiveNotePlayer();
+            Sequencer = new Sequencer(s_livePlayer, Project.Channels.Length);
             s_combiner = new AudioStreamCombiner();
             s_combiner.Add(Sequencer);
-            s_combiner.Add(s_livePlayer);
             s_streamSource = new StreamingAudioSource(s_combiner, 2000);
             s_streamSource.DataProvider = s_combiner;
             s_streamSource.Play();
@@ -81,8 +82,6 @@ namespace SynthApp
             Gui = new Gui(s_rc, Sequencer, s_keyboardInput, s_livePlayer);
 
             Debug.Assert(Project != null);
-            Debug.Assert(Instance == null);
-            Instance = this;
         }
 
         public void Run()

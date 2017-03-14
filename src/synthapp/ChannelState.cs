@@ -9,62 +9,63 @@ namespace SynthApp
     /// </summary>
     public class ChannelState
     {
-        public NoteSequence Sequence { get; } = new NoteSequence();
+        public MaterializedNoteSequence Sequence { get; } = new MaterializedNoteSequence();
 
         /// <summary>
         /// Notes being played through the keyboard.
         /// </summary>
-        public List<Note> KeyboardActiveNotes { get; } = new List<Note>();
+        public List<MaterializedNote> KeyboardActiveNotes { get; } = new List<MaterializedNote>();
 
         /// <summary>
         /// Add a full, completed note, not associated with the keyboard.
         /// </summary>
         /// <param name="n"></param>
-        public void AddNote(Note n)
+        public void AddNote(MaterializedNote n)
         {
             Sequence.Notes.Add(n);
         }
 
-        public void BeginKeyboardNote(Pitch pitch, PatternTime time)
+        public void BeginKeyboardNote(Pitch pitch, uint currentSample)
         {
-            var note = KeyboardActiveNotes.FirstOrDefault(n => n.Pitch.Equals(pitch));
+            double frequency = TuningSystem.EqualTemperament.GetFrequency(pitch);
+            var note = KeyboardActiveNotes.FirstOrDefault(n => n.Frequency.Equals(frequency));
             if (note != null)
             {
-                note.Duration = time - note.StartTime;
+                note.SampleCount = currentSample - note.StartSample;
                 KeyboardActiveNotes.Remove(note);
                 Sequence.Notes.Remove(note);
             }
 
-            Note newNote = new Note(time, PatternTime.Beats(100), pitch);
-            newNote.Velocity = 0.75f;
+            MaterializedNote newNote = new MaterializedNote(frequency, currentSample, uint.MaxValue / 2, 0.75f, 0.0);
             KeyboardActiveNotes.Add(newNote);
             Sequence.Notes.Add(newNote);
         }
 
-        public void EndKeyboardNote(Pitch pitch, PatternTime time)
+        public void EndKeyboardNote(Pitch pitch, uint currentSample)
         {
-            Note note = null;
+            double frequency = TuningSystem.EqualTemperament.GetFrequency(pitch);
+            MaterializedNote note = null;
             foreach (var activeNote in KeyboardActiveNotes)
             {
-                if (activeNote.Pitch.Equals(pitch))
+                if (activeNote.Frequency.Equals(frequency))
                 {
                     note = activeNote;
                 }
             }
             if (note != null)
             {
-                note.Duration = time - note.StartTime;
+                note.SampleCount = currentSample - note.StartSample;
                 KeyboardActiveNotes.Remove(note);
                 Sequence.Notes.Remove(note);
             }
         }
 
-        public void ClearNotesBefore(PatternTime time)
+        public void ClearNotesBefore(uint currentSample)
         {
             for (int i = 0; i < Sequence.Notes.Count; i++)
             {
-                Note n = Sequence.Notes[i];
-                if (n.StartTime + n.Duration <= time)
+                MaterializedNote n = Sequence.Notes[i];
+                if (n.EndSample < currentSample)
                 {
                     Sequence.Notes.RemoveAt(i);
                     i -= 1;

@@ -1,24 +1,17 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
 namespace SynthApp
 {
-    public class LiveNotePlayer : StreamingDataProvider
+    public class LiveNotePlayer
     {
-        private uint _finalChunkGenerated;
         private ConcurrentQueue<KeyboardNoteEvent> _events = new ConcurrentQueue<KeyboardNoteEvent>();
-        private Dictionary<Channel, LivePlayerChannelState> _channelStates = new Dictionary<Channel, LivePlayerChannelState>();
 
-        private HashSet<Pitch> _currentKeys = new HashSet<Pitch>();
-        private HashSet<Pitch> _nextKeys = new HashSet<Pitch>();
-
-        private readonly object _lock = new object();
-
-        public uint SamplePlaybackLocation => _finalChunkGenerated;
+        private HashSet<double> _currentKeys = new HashSet<double>();
+        private HashSet<double> _nextKeys = new HashSet<double>();
 
         public void AddKeyEvent(Channel c, Pitch p, bool isKeyDown)
         {
@@ -27,144 +20,47 @@ namespace SynthApp
 
         public bool IsKeyPressed(Channel c, Pitch p)
         {
-            return _currentKeys.Contains(p);
+            double frequency = TuningSystem.EqualTemperament.GetFrequency(p);
+            return _currentKeys.Contains(frequency);
         }
 
-        private LivePlayerChannelState GetPlayerState(Channel c)
-        {
-            if (!_channelStates.TryGetValue(c, out LivePlayerChannelState ns))
-            {
-                ns = new LivePlayerChannelState();
-                _channelStates.Add(c, ns);
-            }
-
-            return ns;
-        }
-
-        public short[] GetNextAudioChunk(uint numSamples)
+        internal void FlushKeyEvents(List<ChannelState> channelStates, uint currentSample)
         {
             while (_events.TryDequeue(out KeyboardNoteEvent kne))
             {
-                HandleEvent(kne, PatternTime.Samples(_finalChunkGenerated, Globals.SampleRate, Globals.BeatsPerMinute));
+                HandleEvent(channelStates, kne, currentSample);
             }
 
-            UpdateKeySets();
+            UpdateKeySets(channelStates);
 
-            bool empty = true;
-            foreach (var kvp in _channelStates)
-            {
-                if (kvp.Value.ActiveNotes.Count != 0)
-                {
-                    empty = false;
-                    break;
-                }
-            }
-            if (empty)
-            {
-                if (_finalChunkGenerated > 0)
-                {
-                    _finalChunkGenerated = 0;
-                    foreach (var kvp in _channelStates)
-                    {
-                        kvp.Value.ClearAll();
-                    }
-                }
-                return new short[numSamples];
-            }
-
-            float[] data = new float[numSamples];
-            foreach (var kvp in _channelStates)
-            {
-                Channel c = kvp.Key;
-                LivePlayerChannelState lpcs = kvp.Value;
-
-                float[] channelData = c.Play(lpcs.Sequence, _finalChunkGenerated, numSamples);
-                Util.Mix(data, channelData, data);
-            }
-
-            _finalChunkGenerated += numSamples;
-
-            return Util.FloatToShortNormalized(data);
         }
 
-        private void UpdateKeySets()
+        private void UpdateKeySets(List<ChannelState> channelStates)
         {
-            HashSet<Pitch> next = _nextKeys;
+            HashSet<double> next = _nextKeys;
             next.Clear();
-            foreach (var kvp in _channelStates)
+            foreach (var channelState in channelStates)
             {
-                foreach (var note in kvp.Value.ActiveNotes)
+                foreach (var note in channelState.KeyboardActiveNotes)
                 {
-                    next.Add(note.Pitch);
+                    next.Add(note.Frequency);
                 }
             }
 
             _nextKeys = Interlocked.Exchange(ref _currentKeys, next);
         }
 
-        private void HandleEvent(KeyboardNoteEvent kne, PatternTime currentTime)
+        private void HandleEvent(List<ChannelState> channelStates, KeyboardNoteEvent kne, uint currentSample)
         {
-            var sequence = GetPlayerState(kne.Channel);
+            int channelIndex = Application.Instance.Project.GetChannelIndex(kne.Channel);
             if (kne.KeyDown)
             {
-                sequence.BeginNote(kne.Pitch, currentTime);
+                channelStates[channelIndex].BeginKeyboardNote(kne.Pitch, currentSample);
             }
             else
             {
-                sequence.EndNode(kne.Pitch, currentTime);
+                channelStates[channelIndex].EndKeyboardNote(kne.Pitch, currentSample);
             }
-        }
-
-        public void SeekTo(uint sample)
-        {
-            _finalChunkGenerated = 0;
-            _channelStates.Clear();
-        }
-    }
-
-    public class LivePlayerChannelState
-    {
-        public List<Note> ActiveNotes { get; } = new List<Note>();
-        public NoteSequence Sequence { get; } = new NoteSequence();
-
-        public void BeginNote(Pitch pitch, PatternTime time)
-        {
-            var note = ActiveNotes.FirstOrDefault(n => n.Pitch.Equals(pitch));
-            if (note != null)
-            {
-                note.Duration = time - note.StartTime;
-                ActiveNotes.Remove(note);
-                Sequence.Notes.Remove(note);
-            }
-
-            Note newNote = new Note(time, PatternTime.Beats(100), pitch);
-            newNote.Velocity = 0.75f;
-            ActiveNotes.Add(newNote);
-            Sequence.Notes.Add(newNote);
-        }
-
-        public void EndNode(Pitch pitch, PatternTime time)
-        {
-            Note note = null;
-            foreach (var activeNote in ActiveNotes)
-            {
-                if (activeNote.Pitch.Equals(pitch))
-                {
-                    note = activeNote;
-                }
-            }
-            if (note != null)
-            {
-                note.Duration = time - note.StartTime;
-                ActiveNotes.Remove(note);
-                Sequence.Notes.Remove(note);
-            }
-        }
-
-        public void ClearAll()
-        {
-            Sequence.Notes.Clear();
-            ActiveNotes.Clear();
         }
     }
 

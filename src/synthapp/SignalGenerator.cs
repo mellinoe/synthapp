@@ -21,6 +21,12 @@ namespace SynthApp
     {
         public WaveformType Type { get; set; } = WaveformType.Sine;
 
+        public double PhaseOffset { get; set; } = 0.0;
+
+        public float Gain { get; set; } = 1f;
+
+        public double PitchScale { get; set; } = 1.0;
+
         public SimpleWaveformGenerator(uint sampleRate) : base(sampleRate)
         {
         }
@@ -29,9 +35,9 @@ namespace SynthApp
         {
             for (int i = 0; i < numSamples; i++)
             {
-                // TODO: Phase is wrong.
-                double t = (i + phaseStartSample) * Frequency / SampleRate;
-                data[i + bufferStartIndex] += Sample(t) * gain;
+                double t = (i + phaseStartSample) * (Frequency * PitchScale) / SampleRate;
+                t += PhaseOffset;
+                data[i + bufferStartIndex] += Sample(t) * gain * Gain;
             };
         }
 

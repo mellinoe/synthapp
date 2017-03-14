@@ -38,7 +38,7 @@ namespace SynthApp
             return latest < DefaultPatternDuration ? DefaultPatternDuration : latest;
         }
 
-        public void GetNextNotes(uint start, uint sampleCount, ChannelState channelState, uint channelIndex, bool wrap)
+        public void GetNextNotes(uint start, uint sampleCount, uint sequencerPlaybackOffset, ChannelState channelState, uint channelIndex, bool wrap)
         {
             Debug.Assert(channelIndex < NoteSequences.Count);
             NoteSequence ns = NoteSequences[(int)channelIndex];
@@ -50,25 +50,34 @@ namespace SynthApp
                 wrapOffset = start - wrappedStart;
             }
 
-            PatternTime startOffset = PatternTime.Samples(wrapOffset, Globals.SampleRate, Globals.BeatsPerMinute);
             foreach (var note in ns.Notes)
             {
                 if (note.StartTime.ToSamplesAuto() >= wrappedStart
                     && note.StartTime.ToSamplesAuto() < wrappedStart + sampleCount)
                 {
-                    channelState.AddNote(new Note(note, startOffset));
+                    uint noteSampleStart = (uint)Math.Round(note.StartTime.ToSamplesAuto());
+                    uint noteSampleCount = (uint)Math.Round(note.Duration.ToSamplesAuto());
+
+                    PatternTime startOffset = PatternTime.Samples(wrapOffset + sequencerPlaybackOffset, Globals.SampleRate, Globals.BeatsPerMinute);
+                    MaterializedNote mn = new MaterializedNote(
+                        TuningSystem.EqualTemperament.GetFrequency(note.Pitch),
+                        wrapOffset + sequencerPlaybackOffset + noteSampleStart,
+                        noteSampleCount,
+                        note.Velocity,
+                        note.Pan);
+                    channelState.AddNote(mn);
                 }
             }
 
             if (wrap)
             {
                 uint endSample = wrappedStart + sampleCount;
-                uint wrappedEnd = endSample % sampleWrapPosition;
-                if (wrappedEnd != endSample)
+                uint wrappedRemainder = endSample % sampleWrapPosition;
+                if (wrappedRemainder != endSample)
                 {
                     // TODO: This is awful
-                    uint wraps = (uint)((double)((start + sampleCount) / sampleWrapPosition));
-                    GetNextNotes(sampleWrapPosition * wraps, wrappedEnd, channelState, channelIndex, false);
+                    uint wrapCount = (uint)((double)(start + sampleCount) / sampleWrapPosition);
+                    GetNextNotes(sampleWrapPosition * wrapCount, wrappedRemainder, sequencerPlaybackOffset, channelState, channelIndex, false);
                 }
             }
         }

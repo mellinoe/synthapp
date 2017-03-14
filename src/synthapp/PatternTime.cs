@@ -34,10 +34,11 @@ namespace SynthApp
             double SamplesPerBeat = sampleRate * SecondsPerBeat;
             double SamplesPerStep = SamplesPerBeat / 4;
             double totalSteps = samples / SamplesPerStep;
-            double fractional = totalSteps - (uint)totalSteps;
-            uint ticks = (uint)(fractional * 24.0);
+            double fractionalSteps = totalSteps - (uint)totalSteps;
+            uint wholeSteps = (uint)totalSteps;
+            uint ticks = (uint)Math.Ceiling(fractionalSteps * 24.0);
 
-            return new PatternTime((uint)totalSteps, ticks);
+            return new PatternTime(wholeSteps, ticks);
         }
 
         public double ToSamples(uint sampleRate, double beatsPerMinute)

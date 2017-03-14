@@ -7,6 +7,7 @@ using SynthApp.Widgets;
 using System.Numerics;
 using Veldrid.Platform;
 using System.Reflection;
+using System.Linq;
 
 namespace SynthApp
 {
@@ -200,9 +201,15 @@ namespace SynthApp
                         {
                             if (ImGui.MenuItem("Simple Oscillator"))
                             {
+                                AddChannel(new SimpleOscillatorSynth());
                             }
                             if (ImGui.MenuItem("Wave Sampler"))
                             {
+                                AddChannel(new WaveSampler(string.Empty));
+                            }
+                            if (ImGui.MenuItem("3x Oscillator"))
+                            {
+                                AddChannel(new TripleOscillatorSynth());
                             }
                             ImGui.EndMenu();
                         }
@@ -261,6 +268,14 @@ namespace SynthApp
                 }
             }
             ImGui.EndWindow();
+        }
+
+        private void AddChannel(Channel channel)
+        {
+            Project project = Application.Instance.Project;
+            project.Channels = project.Channels.Append(channel).ToArray();
+            project.Patterns[0].NoteSequences.Add(new NoteSequence());
+            Sequencer.AddNewChannelState();
         }
 
         private bool Draw<T>(string label, ref T obj)

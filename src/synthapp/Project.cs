@@ -90,5 +90,18 @@ namespace SynthApp
             project.Patterns = new[] { pattern };
             return project;
         }
+
+        public int GetChannelIndex(Channel channel)
+        {
+            for (int i = 0; i < Channels.Length; i++)
+            {
+                if (Channels[i] == channel)
+                {
+                    return i;
+                }
+            }
+
+            throw new InvalidOperationException("Invalid channel was not contained in the Project's array of Channels: " + channel);
+        }
     }
 }

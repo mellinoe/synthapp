@@ -6,12 +6,15 @@ namespace SynthApp
     public class Sequencer : StreamingDataProvider
     {
         private uint _finalSampleGenerated;
+        private uint _patternPlaybackPosition;
         private readonly List<ChannelState> _channelStates;
+        private readonly LiveNotePlayer _liveNotePlayer;
 
         public bool Playing { get; set; }
 
-        public Sequencer(int numChannels)
+        public Sequencer(LiveNotePlayer lnp, int numChannels)
         {
+            _liveNotePlayer = lnp;
             _channelStates = new List<ChannelState>(numChannels);
             for (int i = 0; i < numChannels; i++)
             {
@@ -26,32 +29,37 @@ namespace SynthApp
 
         public short[] GetNextAudioChunk(uint numSamples)
         {
-            if (!Playing)
-            {
-                return new short[numSamples];
-            }
-
-            uint start = _finalSampleGenerated;
             float[] total = new float[numSamples];
+
+            _liveNotePlayer.FlushKeyEvents(_channelStates, _finalSampleGenerated);
+            if (Playing)
+            {
+                for (int i = 0; i < _channelStates.Count; i++)
+                {
+                    ChannelState state = _channelStates[i];
+                    state.ClearNotesBefore(_patternPlaybackPosition);
+                    Application.Instance.Project.Patterns[0].GetNextNotes(_patternPlaybackPosition, numSamples, _finalSampleGenerated - _patternPlaybackPosition, state, (uint)i, true);
+                }
+
+                _patternPlaybackPosition += numSamples;
+            }
 
             for (int i = 0; i < _channelStates.Count; i++)
             {
                 ChannelState state = _channelStates[i];
-                state.ClearNotesBefore(PatternTime.Samples(_finalSampleGenerated, Globals.SampleRate, Globals.BeatsPerMinute));
-                Application.Instance.Project.Patterns[0].GetNextNotes(_finalSampleGenerated, numSamples, state, (uint)i, true);
                 float[] channelOut = Application.Instance.Project.Channels[i].Play(state.Sequence, _finalSampleGenerated, numSamples);
                 Util.Mix(total, channelOut, total);
             }
 
             short[] normalized = Util.FloatToShortNormalized(total);
-            _finalSampleGenerated = start + numSamples;
+            _finalSampleGenerated += numSamples;
 
             return normalized;
         }
 
         public void SeekTo(uint sample)
         {
-            _finalSampleGenerated = sample;
+            _patternPlaybackPosition = sample;
         }
 
         public uint GetTotalSamples()

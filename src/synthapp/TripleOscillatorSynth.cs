@@ -2,11 +2,15 @@
 
 namespace SynthApp
 {
-    public class SimpleOscillatorSynth : Channel
+    public class TripleOscillatorSynth : Channel
     {
-        private SimpleWaveformGenerator _generator = new SimpleWaveformGenerator(Globals.SampleRate);
+        private SimpleWaveformGenerator _generator1 = new SimpleWaveformGenerator(Globals.SampleRate);
+        private SimpleWaveformGenerator _generator2 = new SimpleWaveformGenerator(Globals.SampleRate);
+        private SimpleWaveformGenerator _generator3 = new SimpleWaveformGenerator(Globals.SampleRate);
 
-        public SimpleWaveformGenerator Generator => _generator;
+        public SimpleWaveformGenerator Generator1 => _generator1;
+        public SimpleWaveformGenerator Generator2 => _generator2;
+        public SimpleWaveformGenerator Generator3 => _generator3;
 
         public override float[] Play(MaterializedNoteSequence p, uint startSample, uint numSamples)
         {
@@ -39,8 +43,14 @@ namespace SynthApp
 
         private void AddNote(float[] samples, MaterializedNote note, uint bufferStartIndex, uint numSamples, uint phaseStartSample)
         {
-            Generator.Frequency = note.Frequency;
-            Generator.Generate(samples, bufferStartIndex, numSamples, phaseStartSample, Gain * note.Velocity);
+            Generator1.Frequency = note.Frequency;
+            Generator1.Generate(samples, bufferStartIndex, numSamples, phaseStartSample, Gain * note.Velocity);
+
+            Generator2.Frequency = note.Frequency;
+            Generator2.Generate(samples, bufferStartIndex, numSamples, phaseStartSample, Gain * note.Velocity);
+
+            Generator3.Frequency = note.Frequency;
+            Generator3.Generate(samples, bufferStartIndex, numSamples, phaseStartSample, Gain * note.Velocity);
         }
     }
 }

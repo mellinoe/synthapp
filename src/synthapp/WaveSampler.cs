@@ -88,15 +88,15 @@ namespace SynthApp
             }
         }
 
-        public override float[] Play(NoteSequence p, uint startSample, uint numSamples)
+        public override float[] Play(MaterializedNoteSequence p, uint startSample, uint numSamples)
         {
             uint endSample = startSample + numSamples;
             float[] samples = new float[numSamples];
             if (!Muted)
             {
-                foreach (Note note in p.Notes)
+                foreach (MaterializedNote note in p.Notes)
                 {
-                    uint noteStartSample = (uint)(note.StartTime.TotalBeats * Globals.SamplesPerBeat);
+                    uint noteStartSample = note.StartSample;
                     uint noteDurationSamples = TotalSamples;
                     uint noteEndSample = noteStartSample + noteDurationSamples;
 
@@ -117,7 +117,7 @@ namespace SynthApp
             return samples;
         }
 
-        private void AddNote(float[] samples, Note note, uint bufferStartIndex, uint numSamples, uint phaseStartSample)
+        private void AddNote(float[] samples, MaterializedNote note, uint bufferStartIndex, uint numSamples, uint phaseStartSample)
         {
             for (uint i = 0; i < numSamples; i++)
             {
