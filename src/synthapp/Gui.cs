@@ -235,7 +235,11 @@ namespace SynthApp
                             ns.UsesPianoRoll = true;
                             Application.Instance.SelectedChannelIndex = i;
                         }
-
+                        if (ImGui.Selectable("Delete Channel"))
+                        {
+                            Application.Instance.Project.Channels.RemoveAt(i);
+                            Sequencer.RemoveChannelState(i);
+                        }
                         ImGui.EndPopup();
                     }
 
@@ -273,7 +277,7 @@ namespace SynthApp
         private void AddChannel(Channel channel)
         {
             Project project = Application.Instance.Project;
-            project.Channels = project.Channels.Append(channel).ToArray();
+            project.Channels.Add(channel);
             project.Patterns[0].NoteSequences.Add(new NoteSequence());
             Sequencer.AddNewChannelState();
         }

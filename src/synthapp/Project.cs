@@ -5,8 +5,8 @@ namespace SynthApp
 {
     public class Project
     {
-        public Channel[] Channels { get; set; } = new Channel[0];
-        public Pattern[] Patterns { get; set; } = new Pattern[0];
+        public List<Channel> Channels { get; set; } = new List<Channel>();
+        public List<Pattern> Patterns { get; set; } = new List<Pattern>();
 
         public static Project CreateDefault()
         {
@@ -86,14 +86,14 @@ namespace SynthApp
 
 
             Project project = new Project();
-            project.Channels = channels.ToArray();
-            project.Patterns = new[] { pattern };
+            project.Channels = channels;
+            project.Patterns = new List<Pattern>() { pattern };
             return project;
         }
 
         public int GetChannelIndex(Channel channel)
         {
-            for (int i = 0; i < Channels.Length; i++)
+            for (int i = 0; i < Channels.Count; i++)
             {
                 if (Channels[i] == channel)
                 {

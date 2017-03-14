@@ -27,6 +27,11 @@ namespace SynthApp
             _channelStates.Add(new ChannelState());
         }
 
+        public void RemoveChannelState(int i)
+        {
+            _channelStates.RemoveAt(i);
+        }
+
         public short[] GetNextAudioChunk(uint numSamples)
         {
             float[] total = new float[numSamples];

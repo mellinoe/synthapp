@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -70,7 +71,7 @@ namespace SynthApp
             }
 
             s_livePlayer = new LiveNotePlayer();
-            Sequencer = new Sequencer(s_livePlayer, Project.Channels.Length);
+            Sequencer = new Sequencer(s_livePlayer, Project.Channels.Count);
             s_combiner = new AudioStreamCombiner();
             s_combiner.Add(Sequencer);
             s_streamSource = new StreamingAudioSource(s_combiner, 2000);
@@ -145,9 +146,16 @@ namespace SynthApp
 
         public void LoadProject(string path)
         {
-            Project = SerializationServices.Load<Project>(path);
-            ProjectContext.FullPath = path;
-            SynthAppPreferences.Instance.SetLatestProject(path);
+            try
+            {
+                Project = SerializationServices.Load<Project>(path);
+                ProjectContext.FullPath = path;
+                SynthAppPreferences.Instance.SetLatestProject(path);
+            }
+            catch (JsonSerializationException)
+            {
+                Project = Project.CreateDefault();
+            }
         }
 
         public void SaveCurrentProject()
