@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SynthApp
 {
@@ -7,6 +8,7 @@ namespace SynthApp
     {
         private uint _finalSampleGenerated;
         private uint _patternPlaybackPosition;
+        private Task<float[]>[] _tasks;
         private readonly List<ChannelState> _channelStates;
         private readonly LiveNotePlayer _liveNotePlayer;
 
@@ -16,6 +18,7 @@ namespace SynthApp
         {
             _liveNotePlayer = lnp;
             _channelStates = new List<ChannelState>(numChannels);
+            _tasks = new Task<float[]>[numChannels];
             for (int i = 0; i < numChannels; i++)
             {
                 _channelStates.Add(new ChannelState());
@@ -25,11 +28,13 @@ namespace SynthApp
         public void AddNewChannelState()
         {
             _channelStates.Add(new ChannelState());
+            Array.Resize(ref _tasks, _tasks.Length + 1);
         }
 
         public void RemoveChannelState(int i)
         {
             _channelStates.RemoveAt(i);
+            Array.Resize(ref _tasks, _tasks.Length - 1);
         }
 
         public short[] GetNextAudioChunk(uint numSamples)
@@ -37,27 +42,39 @@ namespace SynthApp
             float[] total = new float[numSamples];
 
             _liveNotePlayer.FlushKeyEvents(_channelStates, _finalSampleGenerated);
-            if (Playing)
-            {
-                for (int i = 0; i < _channelStates.Count; i++)
-                {
-                    ChannelState state = _channelStates[i];
-                    state.ClearNotesBefore(_patternPlaybackPosition);
-                    Application.Instance.Project.Patterns[0].GetNextNotes(_patternPlaybackPosition, numSamples, _finalSampleGenerated - _patternPlaybackPosition, state, (uint)i, true);
-                }
-
-                _patternPlaybackPosition += numSamples;
-            }
 
             for (int i = 0; i < _channelStates.Count; i++)
             {
-                ChannelState state = _channelStates[i];
-                float[] channelOut = Application.Instance.Project.Channels[i].Play(state.Sequence, _finalSampleGenerated, numSamples);
-                Util.Mix(total, channelOut, total);
+                int localI = i;
+                _tasks[localI] = Task.Run((() =>
+                {
+                    ChannelState state = _channelStates[localI];
+                    if (Playing)
+                    {
+                        state.ClearNotesBefore(_patternPlaybackPosition);
+                        Application.Instance.Project.Patterns[0].GetNextNotes(
+                            _patternPlaybackPosition,
+                            numSamples,
+                            _finalSampleGenerated - _patternPlaybackPosition,
+                            state,
+                            (uint)localI,
+                            true);
+                    }
+                    return Application.Instance.Project.Channels[localI].Play(state.Sequence, _finalSampleGenerated, numSamples);
+                }));
+            }
+            Task.WaitAll(_tasks);
+            foreach (var task in _tasks)
+            {
+                Util.Mix(task.Result, total, total);
             }
 
             short[] normalized = Util.FloatToShortNormalized(total);
             _finalSampleGenerated += numSamples;
+            if (Playing)
+            {
+                _patternPlaybackPosition += numSamples;
+            }
 
             return normalized;
         }
