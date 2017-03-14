@@ -27,6 +27,10 @@ namespace SynthApp
 
         public double PitchScale { get; set; } = 1.0;
 
+        [ThreadStatic]
+        private static Random t_random;
+        private static Random Random => t_random ?? (t_random = new Random());
+
         public SimpleWaveformGenerator(uint sampleRate) : base(sampleRate)
         {
         }
@@ -64,6 +68,10 @@ namespace SynthApp
                         double a = 1;
                         return (float)(2 * ((t / a) - Math.Floor(0.5 + (t / a))));
                     }
+                case WaveformType.Noise:
+                    {
+                        return (float)(Random.NextDouble() * 2 - 1);
+                    }
                 default:
                     throw new InvalidOperationException();
             }
@@ -74,7 +82,8 @@ namespace SynthApp
             Sine,
             Triangle,
             Square,
-            Sawtooth
+            Sawtooth,
+            Noise
         }
     }
 }
