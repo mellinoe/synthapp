@@ -73,7 +73,7 @@ namespace SynthApp
 
         private uint GetCurrentPlaybackSamples()
         {
-            return (uint)_streamSource.SamplesProcessed;
+            return _streamSource.SamplesProcessed;
         }
     }
 }

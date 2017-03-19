@@ -34,7 +34,7 @@ namespace SynthApp
         public SerializationServices SerializationServices { get; }
         public ProjectContext ProjectContext { get; } = new ProjectContext();
         public Project Project { get; private set; }
-        public AudioEngine AudioEngine { get; } = new AudioEngine();
+        public AudioEngine AudioEngine { get; }
         public InputTracker Input { get; } = new InputTracker();
         public int SelectedChannelIndex { get; set; }
         public Channel SelectedChannel => Project.Channels[SelectedChannelIndex];
@@ -48,6 +48,7 @@ namespace SynthApp
         {
             Debug.Assert(Instance == null);
             Instance = this;
+            AudioEngine = CreateDefaultAudioEngine();
             window = new DedicatedThreadWindow(960, 540, WindowState.Maximized);
             window.Title = "Synth";
             s_rc = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -74,7 +75,7 @@ namespace SynthApp
             Sequencer = new Sequencer(s_livePlayer, Project.Channels.Count);
             s_combiner = new AudioStreamCombiner();
             s_combiner.Add(Sequencer);
-            s_streamSource = new StreamingAudioSource(s_combiner, 2000);
+            s_streamSource = AudioEngine.CreateStreamingAudioSource(s_combiner, 2000);
             s_streamSource.DataProvider = s_combiner;
             s_streamSource.Play();
 
@@ -83,6 +84,11 @@ namespace SynthApp
             Gui = new Gui(s_rc, Sequencer, s_keyboardInput, s_livePlayer);
 
             Debug.Assert(Project != null);
+        }
+
+        private AudioEngine CreateDefaultAudioEngine()
+        {
+            return new OpenALAudioEngine();
         }
 
         public void Run()
