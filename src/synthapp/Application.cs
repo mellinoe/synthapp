@@ -1,5 +1,7 @@
 ﻿using ImGuiNET;
 using Newtonsoft.Json;
+using SynthApp.OpenAL;
+using SynthApp.XAudio2;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -48,7 +50,6 @@ namespace SynthApp
         {
             Debug.Assert(Instance == null);
             Instance = this;
-            AudioEngine = CreateDefaultAudioEngine();
             window = new DedicatedThreadWindow(960, 540, WindowState.Maximized);
             window.Title = "Synth";
             s_rc = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -71,6 +72,7 @@ namespace SynthApp
                 Project = Project.CreateDefault();
             }
 
+            AudioEngine = CreateDefaultAudioEngine();
             s_livePlayer = new LiveNotePlayer();
             Sequencer = new Sequencer(s_livePlayer, Project.Channels.Count);
             s_combiner = new AudioStreamCombiner();
@@ -88,7 +90,7 @@ namespace SynthApp
 
         private AudioEngine CreateDefaultAudioEngine()
         {
-            return new OpenALAudioEngine();
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? (AudioEngine)new XAudio2AudioEngine() : new OpenALAudioEngine();
         }
 
         public void Run()

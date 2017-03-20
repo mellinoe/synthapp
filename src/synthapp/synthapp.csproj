@@ -38,13 +38,11 @@
     <ProjectReference Include="$(ExtDir)\veldrid\src\Veldrid\Veldrid.csproj" />
     <ProjectReference Include="$(ExtDir)\imgui.net\src\ImGui.NET\ImGui.NET.csproj" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+    <PackageReference Include="SharpDX.XAudio2" Version="3.0.2" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="E:\projects\synthapp\\ext\imgui.net\deps\cimgui\win7-x64\cimgui.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="OpenAL\" />
   </ItemGroup>
 </Project>

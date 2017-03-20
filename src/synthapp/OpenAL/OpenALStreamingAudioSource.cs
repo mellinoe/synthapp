@@ -3,7 +3,7 @@ using OpenTK.Audio.OpenAL;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-namespace SynthApp
+namespace SynthApp.OpenAL
 {
     public class OpenALStreamingAudioSource : StreamingAudioSource
     {
@@ -74,6 +74,7 @@ namespace SynthApp
 
         public unsafe void Stop()
         {
+            // NOTE: This is never called. I think it is wrong.
             _playing = false;
             AL.SourceStop(_sid);
             AL.GetSource(_sid, ALGetSourcei.BuffersQueued, out int count);
@@ -107,11 +108,5 @@ namespace SynthApp
         {
             return DataProvider.GetNextAudioChunk(_chunkSizeInSamples);
         }
-    }
-
-    public interface StreamingDataProvider
-    {
-        short[] GetNextAudioChunk(uint numSamples);
-        void SeekTo(uint sample);
     }
 }

@@ -2,7 +2,7 @@
 using OpenTK.Audio.OpenAL;
 using System;
 
-namespace SynthApp
+namespace SynthApp.OpenAL
 {
     public class OpenALAudioEngine : AudioEngine, IDisposable
     {
