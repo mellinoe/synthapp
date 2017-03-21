@@ -15,8 +15,13 @@ namespace SynthApp.XAudio2
         private readonly SourceVoice _sourceVoice;
         private readonly uint _chunkSizeInSamples = 250;
         private bool _playing;
-        private int _bufferQueuesNeeded;
         private readonly uint _chunks;
+
+        private AutoResetEvent _bufferFinishedEvent = new AutoResetEvent(false);
+
+        private AudioBuffer[] _audioBuffers;
+        private DataStream[] _dataStreams;
+        private int _nextBufferIndex = 0;
 
         public XAudio2StreamingAudioSource(SharpDX.XAudio2.XAudio2 xa2, StreamingDataProvider dataProvider, uint bufferedSamples)
         {
@@ -27,6 +32,14 @@ namespace SynthApp.XAudio2
             WaveFormat format = new WaveFormat((int)Globals.SampleRate, 1);
             _sourceVoice = new SourceVoice(xa2, format, VoiceFlags.None, true);
             _sourceVoice.BufferEnd += OnSourceVoiceBufferEnd;
+
+            _audioBuffers = new AudioBuffer[_chunks];
+            _dataStreams = new DataStream[_chunks];
+            for (int i = 0; i < _chunks; i++)
+            {
+                _audioBuffers[i] = new AudioBuffer();
+                _dataStreams[i] = new DataStream((int)(_bufferedSamples * sizeof(short)), true, true);
+            }
         }
 
         public StreamingDataProvider DataProvider { get; set; }
@@ -37,8 +50,7 @@ namespace SynthApp.XAudio2
         {
             for (uint i = 0; i < _chunks; i++)
             {
-                var audioBuffer = new AudioBuffer();
-                RefillAndQueueBuffer(audioBuffer);
+                RefillAndQueueNextBuffer();
             }
 
             _playing = true;
@@ -46,35 +58,33 @@ namespace SynthApp.XAudio2
             Task.Factory.StartNew(() => AudioFillLoop(), TaskCreationOptions.LongRunning);
         }
 
+        private void RefillAndQueueNextBuffer()
+        {
+            int nextBufferIndex = _nextBufferIndex;
+            _nextBufferIndex = (_nextBufferIndex + 1) % (int)_chunks;
+            AudioBuffer buffer = _audioBuffers[nextBufferIndex];
+            DataStream ds = _dataStreams[nextBufferIndex];
+            ds.Position = 0;
+            RefillAndQueueBuffer(buffer, ds);
+        }
+
         private unsafe void AudioFillLoop()
         {
             while (_playing)
             {
-                int queued = _sourceVoice.State.BuffersQueued;
-                int needed = (int)(_chunks - queued);
-                if (needed > 0)
-                {
-                    while (needed != 0)
-                    {
-                        needed--;
-                        AudioBuffer buffer = new AudioBuffer();
-                        RefillAndQueueBuffer(buffer);
-                    }
-                }
-
-                _sourceVoice.Start();
+                _bufferFinishedEvent.WaitOne();
+                RefillAndQueueNextBuffer();
             }
         }
 
         private void OnSourceVoiceBufferEnd(IntPtr buffer)
         {
-            Interlocked.Increment(ref _bufferQueuesNeeded);
+            _bufferFinishedEvent.Set();
         }
 
-        private unsafe void RefillAndQueueBuffer(AudioBuffer buffer)
+        private unsafe void RefillAndQueueBuffer(AudioBuffer buffer, DataStream ds)
         {
             uint totalSampleBytes = (uint)(_chunkSizeInSamples * sizeof(short));
-            DataStream ds = new DataStream((int)totalSampleBytes, true, true);
             short[] data = GetNextAudioChunk();
             fixed (short* dataPtr = &data[0])
             {
