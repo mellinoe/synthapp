@@ -224,6 +224,7 @@ namespace SynthApp
                     Channel channel = channels[i];
                     if (ImGui.Button($"[Channel {i}] {channel.Name}"))
                     {
+                        Application.Instance.SelectedChannelIndex = i;
                         OpenChannelWindow(channel);
                     }
                     NoteSequence ns = Application.Instance.Project.Patterns[0].NoteSequences[i];
