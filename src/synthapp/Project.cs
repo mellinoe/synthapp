@@ -40,6 +40,7 @@ namespace SynthApp
             triPattern.Notes.Add(new Note(PatternTime.Steps(26), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
             triPattern.Notes.Add(new Note(PatternTime.Steps(30), PatternTime.Steps(1), new Pitch(PitchClass.A, 2)));
             triPattern.Notes.Add(new Note(PatternTime.Steps(31), PatternTime.Steps(1), new Pitch(PitchClass.A, 3)));
+            triPattern.UsesPianoRoll = true;
             pattern.NoteSequences[0] = triPattern;
 
             NoteSequence sawPattern = new NoteSequence();
@@ -54,6 +55,7 @@ namespace SynthApp
             sawPattern.Notes.Add(new Note(PatternTime.Steps(22), PatternTime.Steps(1), new Pitch(PitchClass.G, 4)));
             sawPattern.Notes.Add(new Note(PatternTime.Steps(24), PatternTime.Steps(3), new Pitch(PitchClass.FSharp, 4)));
             sawPattern.Notes.Add(new Note(PatternTime.Steps(28), PatternTime.Steps(3), new Pitch(PitchClass.E, 4)));
+            sawPattern.UsesPianoRoll = true;
             pattern.NoteSequences[1] = sawPattern;
 
             NoteSequence sinePattern = new NoteSequence();
@@ -71,6 +73,7 @@ namespace SynthApp
             sinePattern.Notes.Add(new Note(PatternTime.Steps(29), PatternTime.Steps(1), new Pitch(PitchClass.D, 6)));
             sinePattern.Notes.Add(new Note(PatternTime.Steps(30), PatternTime.Steps(1), new Pitch(PitchClass.CSharp, 6)));
             sinePattern.Notes.Add(new Note(PatternTime.Steps(31), PatternTime.Steps(1), new Pitch(PitchClass.B, 5)));
+            sinePattern.UsesPianoRoll = true;
             pattern.NoteSequences[2] = sinePattern;
 
             NoteSequence kicks = new NoteSequence();

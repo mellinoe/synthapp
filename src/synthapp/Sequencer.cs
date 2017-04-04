@@ -14,6 +14,8 @@ namespace SynthApp
 
         public bool Playing { get; set; }
 
+        public uint PlaybackPositionSamples => _patternPlaybackPosition;
+
         public Sequencer(LiveNotePlayer lnp, int numChannels)
         {
             _liveNotePlayer = lnp;

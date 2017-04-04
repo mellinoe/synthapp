@@ -165,6 +165,24 @@ namespace SynthApp
                             }
                         }
                     }
+
+                    // Draw playback position indicator
+                    if (Application.Instance.Sequencer.Playing)
+                    {
+                        double samplePos = Application.Instance.Sequencer.PlaybackPositionSamples;
+                        double totalPatternSamples = GetActivePattern().CalculateFinalNoteEndTime().ToSamplesAuto();
+                        samplePos = samplePos % totalPatternSamples;
+                        PatternTime time = PatternTime.Samples((uint)samplePos, Globals.SampleRate, Globals.BeatsPerMinute);
+                        double totalBeats = time.TotalBeats;
+                        float x = (float)(totalBeats * _stepWidth * 4);
+                        float thickness = 12f;
+                        dl.AddLine(
+                            gridPos + new Vector2(x, 0) + _viewOffset,
+                            gridPos + new Vector2(x, totalSize.Y) + _viewOffset,
+                            Util.Argb(0.3f, 1f, 1f, 1f),
+                            thickness);
+                    }
+
                     dl.PopClipRect();
 
                     Vector2 pianoPaneSize = new Vector2(_pianoKeyWidth, ImGui.GetWindowHeight() - _bottomPanelHeight);

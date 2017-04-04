@@ -25,12 +25,10 @@ namespace SynthApp.Widgets
                 Vector2 drawPos = ImGui.GetCursorScreenPos() + new Vector2(10, 10);
                 for (uint i = 0; i < steps; i++)
                 {
-                    Vector4 color = new Vector4(.8f, .8f, .8f, 1f);
+                    Vector4 color;
+                    Vector4 baseColor = (i % 8 < 4) ? new Vector4(0.35f, 0.35f, 0.35f, 1f) : new Vector4(0.5f, 0.35f, 0.35f, 1f);
                     bool active = ns.Notes.Any(n => n.StartTime == PatternTime.Steps(i));
-                    if (active)
-                    {
-                        color = new Vector4(1f, .58f, 0f, 1f);
-                    }
+                    color = Vector4.Lerp(baseColor, new Vector4(1f, 1f, 1f, 1f), active ? 0.75f : 0f);
                     ImGui.PushID((int)i);
 
                     bool hovered = ImGui.IsMouseHoveringWindow() && ImGui.IsMouseHoveringRect(drawPos, drawPos + ButtonSize, true);
