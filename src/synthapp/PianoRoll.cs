@@ -300,7 +300,7 @@ namespace SynthApp
 
         private static Pattern GetActivePattern()
         {
-            return Application.Instance.Project.Patterns[0];
+            return Application.Instance.SelectedPattern;
         }
 
         public bool DrawPreviewOnly(NoteSequence notes, uint totalPatternSteps, Vector2 size, bool drawGrid)
@@ -336,12 +336,12 @@ namespace SynthApp
 
         private static unsafe NoteSequence GetActiveNoteSequence()
         {
-            return Application.Instance.Project.Patterns[0].NoteSequences[Application.Instance.SelectedChannelIndex];
+            return Application.Instance.SelectedPattern.NoteSequences[Application.Instance.SelectedChannelIndex];
         }
 
         private void RemoveNote(Note note)
         {
-            _noteRemovals.Add(note); ;
+            _noteRemovals.Add(note);
         }
 
         private void AddNote(Vector2 gridPos)

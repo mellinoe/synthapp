@@ -21,6 +21,7 @@ namespace SynthApp
 
         public Pattern()
         {
+            NoteSequences = new List<NoteSequence>();
         }
 
         public PatternTime CalculateFinalNoteEndTime()

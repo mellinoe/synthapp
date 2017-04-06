@@ -39,7 +39,10 @@ namespace SynthApp
         public AudioEngine AudioEngine { get; }
         public InputTracker Input { get; } = new InputTracker();
         public int SelectedChannelIndex { get; set; }
+        public int SelectedPatternIndex { get; set; }
         public Channel SelectedChannel => Project.Channels[SelectedChannelIndex];
+        public Pattern SelectedPattern => Project.GetOrCreatePattern(SelectedPatternIndex);
+
         public AudioStreamCombiner MasterCombiner => s_combiner;
 
         public double DesiredFramerate { get; set; } = 60.0;

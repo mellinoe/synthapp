@@ -54,7 +54,7 @@ namespace SynthApp
                     if (Playing)
                     {
                         state.ClearNotesBefore(_patternPlaybackPosition);
-                        Application.Instance.Project.Patterns[0].GetNextNotes(
+                        Application.Instance.SelectedPattern.GetNextNotes(
                             _patternPlaybackPosition,
                             numSamples,
                             _finalSampleGenerated - _patternPlaybackPosition,
@@ -88,7 +88,7 @@ namespace SynthApp
 
         public uint GetTotalSamples()
         {
-            return (uint)(Application.Instance.Project.Patterns[0].CalculateFinalNoteEndTime().TotalBeats * Globals.SamplesPerBeat);
+            return (uint)(Application.Instance.SelectedPattern.CalculateFinalNoteEndTime().TotalBeats * Globals.SamplesPerBeat);
         }
 
         public void Stop()

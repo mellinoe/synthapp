@@ -98,6 +98,29 @@ namespace SynthApp
             return project;
         }
 
+        public Pattern GetOrCreatePattern(int selectedPatternIndex)
+        {
+            if (Patterns.Count > selectedPatternIndex)
+            {
+                return Patterns[selectedPatternIndex];
+            }
+            else
+            {
+                if (selectedPatternIndex != Patterns.Count)
+                {
+                    throw new InvalidOperationException("Can only get a new pattern with one index higher than the current max.");
+                }
+
+                Pattern newPattern = new Pattern();
+                for (int i = 0; i < Channels.Count; i++)
+                {
+                    newPattern.NoteSequences.Add(new NoteSequence());
+                }
+                Patterns.Add(newPattern);
+                return newPattern;
+            }
+        }
+
         public int GetChannelIndex(Channel channel)
         {
             for (int i = 0; i < Channels.Count; i++)

@@ -61,7 +61,7 @@ namespace SynthApp
             }
 
             Application appInstance = Application.Instance;
-            DrawPattern(appInstance.Project.Patterns[0], appInstance.Project.Channels);
+            DrawPattern(appInstance.SelectedPattern, appInstance.Project.Channels);
 
             if (appInstance.SelectedChannel != null)
             {
@@ -226,10 +226,33 @@ namespace SynthApp
             ImGui.PopItemWidth();
 
             ImGui.SameLine();
+            ImGui.Separator();
+
+            ImGui.SameLine();
+            int patternIndex = Application.Instance.SelectedPatternIndex;
+            ImGui.PushItemWidth(80f);
+            if (ImGui.DragInt("Pattern", ref patternIndex, 0.01f, 0, Application.Instance.Project.Patterns.Count, null))
+            {
+                Application.Instance.SelectedPatternIndex = patternIndex;
+            }
+            ImGui.PopItemWidth();
+
+            ImGui.SameLine();
+            if (ImGui.Button("-"))
+            {
+                Application.Instance.SelectedPatternIndex = Math.Max(0, patternIndex - 1);
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("+"))
+            {
+                Application.Instance.SelectedPatternIndex = patternIndex + 1;
+            }
+
+            ImGui.SameLine();
             ImGui.Spacing();
 
             ImGui.EndWindow();
-            ImGui.PopStyleVar();
+            ImGui.PopStyleVar(); // Window rounding
         }
 
         private void SaveProjectTo(string fullPath)
@@ -252,17 +275,9 @@ namespace SynthApp
                     {
                         if (ImGui.BeginMenu("New Channel"))
                         {
-                            if (ImGui.MenuItem("Simple Oscillator"))
+                            if (DrawChannelOptionMenuItems(out Channel newChannel))
                             {
-                                AddChannel(new SimpleOscillatorSynth());
-                            }
-                            if (ImGui.MenuItem("Wave Sampler"))
-                            {
-                                AddChannel(new WaveSampler(string.Empty));
-                            }
-                            if (ImGui.MenuItem("3x Oscillator"))
-                            {
-                                AddChannel(new TripleOscillatorSynth());
+                                AddChannel(newChannel);
                             }
                             ImGui.EndMenu();
                         }
@@ -288,19 +303,27 @@ namespace SynthApp
                         Application.Instance.SelectedChannelIndex = i;
                         OpenChannelWindow(channel);
                     }
-                    NoteSequence ns = Application.Instance.Project.Patterns[0].NoteSequences[i];
-                    uint patternLength = Application.Instance.Project.Patterns[0].CalculateFinalNoteEndTime().Step;
+                    NoteSequence ns = Application.Instance.SelectedPattern.NoteSequences[i];
+                    uint patternLength = Application.Instance.SelectedPattern.CalculateFinalNoteEndTime().Step;
                     if (ImGui.BeginPopupContextItem($"{i}_C", 1))
                     {
-                        if (ImGui.Selectable($"Piano Roll###PR{i}"))
+                        if (ImGui.MenuItem($"Piano Roll###PR{i}"))
                         {
                             ns.UsesPianoRoll = true;
                             Application.Instance.SelectedChannelIndex = i;
                         }
-                        if (ImGui.Selectable("Delete Channel"))
+                        if (ImGui.MenuItem("Delete Channel"))
                         {
                             Application.Instance.Project.Channels.RemoveAt(i);
                             Sequencer.RemoveChannelState(i);
+                        }
+                        if (ImGui.BeginMenu("Replace Channel"))
+                        {
+                            if (DrawChannelOptionMenuItems(out Channel newChannel))
+                            {
+                                Application.Instance.Project.Channels[i] = newChannel;
+                            }
+                            ImGui.EndMenu();
                         }
                         ImGui.EndPopup();
                     }
@@ -342,11 +365,35 @@ namespace SynthApp
             ImGui.EndWindow();
         }
 
+        private bool DrawChannelOptionMenuItems(out Channel channel)
+        {
+            channel = null;
+
+            if (ImGui.MenuItem("Simple Oscillator"))
+            {
+                channel = new SimpleOscillatorSynth();
+            }
+            if (ImGui.MenuItem("Wave Sampler"))
+            {
+                channel = new WaveSampler(string.Empty);
+            }
+            if (ImGui.MenuItem("3x Oscillator"))
+            {
+                channel = new TripleOscillatorSynth();
+            }
+
+            return channel != null;
+        }
+
         private void AddChannel(Channel channel)
         {
             Project project = Application.Instance.Project;
             project.Channels.Add(channel);
-            project.Patterns[0].NoteSequences.Add(new NoteSequence());
+            foreach (var pattern in project.Patterns)
+            {
+                pattern.NoteSequences.Add(new NoteSequence());
+            }
+
             Sequencer.AddNewChannelState();
         }
 
