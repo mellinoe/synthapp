@@ -12,9 +12,13 @@ namespace SynthApp
         private readonly List<ChannelState> _channelStates;
         private readonly LiveNotePlayer _liveNotePlayer;
 
+        private readonly List<ActivePatternItem> _activePatterns = new List<ActivePatternItem>();
+
         public bool Playing { get; set; }
 
         public uint PlaybackPositionSamples => _patternPlaybackPosition;
+
+        public PlaybackMode PlaybackMode { get; set; } = PlaybackMode.Pattern;
 
         public Sequencer(LiveNotePlayer lnp, int numChannels)
         {
@@ -45,6 +49,7 @@ namespace SynthApp
 
             _liveNotePlayer.FlushKeyEvents(_channelStates, _finalSampleGenerated);
 
+            UpdateActivePatterns(_patternPlaybackPosition, numSamples);
             for (int i = 0; i < _channelStates.Count; i++)
             {
                 int localI = i;
@@ -54,13 +59,17 @@ namespace SynthApp
                     if (Playing)
                     {
                         state.ClearNotesBefore(_patternPlaybackPosition);
-                        Application.Instance.SelectedPattern.GetNextNotes(
-                            _patternPlaybackPosition,
-                            numSamples,
-                            _finalSampleGenerated - _patternPlaybackPosition,
-                            state,
-                            (uint)localI,
-                            true);
+                        foreach (ActivePatternItem api in _activePatterns)
+                        {
+                            api.Pattern.GetNextNotes(
+                                _patternPlaybackPosition,
+                                numSamples,
+                                _finalSampleGenerated - _patternPlaybackPosition,
+                                PlaybackMode == PlaybackMode.Song ? api.SampleStart : 0u,
+                                state,
+                                (uint)localI,
+                                PlaybackMode == PlaybackMode.Pattern);
+                        }
                     }
                     return Application.Instance.Project.Channels[localI].Play(state.Sequence, _finalSampleGenerated, numSamples);
                 }));
@@ -100,5 +109,45 @@ namespace SynthApp
                 cs.ClearAll();
             }
         }
+
+        private void UpdateActivePatterns(uint startSample, uint numSamples)
+        {
+            _activePatterns.Clear();
+            if (PlaybackMode == PlaybackMode.Pattern)
+            {
+                _activePatterns.Add(new ActivePatternItem() { Pattern = Application.Instance.SelectedPattern });
+            }
+            else
+            {
+                Playlist playlist = Application.Instance.Project.SongPlaylist;
+                ulong chunkStartSamples = startSample;
+                ulong chunkEndSamples = chunkStartSamples + numSamples;
+                foreach (PlaylistEntry entry in playlist.Entries)
+                {
+                    Pattern pattern = Application.Instance.Project.GetOrCreatePattern(entry.PatternIndex);
+                    uint patternSampleOffset = (uint)(entry.SongStepOffset * Globals.SamplesPerStep);
+                    ulong patternStartSamples = patternSampleOffset;
+                    ulong patternEndSamples = patternStartSamples + (ulong)(pattern.CalculateFinalNoteEndTime().ToSamplesAuto());
+                    if ((chunkStartSamples >= patternStartSamples && chunkStartSamples < patternEndSamples)
+                        || (chunkEndSamples >= patternStartSamples && chunkEndSamples < patternEndSamples)
+                        || (chunkStartSamples <= patternStartSamples && chunkEndSamples >= patternEndSamples))
+                    {
+                        _activePatterns.Add(new ActivePatternItem() { Pattern = pattern, SampleStart = patternSampleOffset });
+                    }
+                }
+            }
+        }
+
+        private struct ActivePatternItem
+        {
+            public Pattern Pattern;
+            public uint SampleStart;
+        }
+    }
+
+    public enum PlaybackMode
+    {
+        Pattern = 0,
+        Song = 1,
     }
 }

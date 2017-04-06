@@ -82,7 +82,7 @@ namespace SynthApp
             s_combiner = new AudioStreamCombiner();
             s_combiner.Gain = 0.5f;
             s_combiner.Add(Sequencer);
-            s_streamSource = AudioEngine.CreateStreamingAudioSource(s_combiner, 2000);
+            s_streamSource = AudioEngine.CreateStreamingAudioSource(s_combiner, 5000);
             s_streamSource.DataProvider = s_combiner;
             s_streamSource.Play();
 

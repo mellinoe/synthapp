@@ -248,6 +248,15 @@ namespace SynthApp
                 Application.Instance.SelectedPatternIndex = patternIndex + 1;
             }
 
+            ImGui.PushID(1);
+            ImGui.SameLine();
+            string text = Sequencer.PlaybackMode == PlaybackMode.Pattern ? "Pattern" : "Song";
+            if (ImGui.Button(text))
+            {
+                Sequencer.PlaybackMode = Sequencer.PlaybackMode == PlaybackMode.Pattern ? PlaybackMode.Song : PlaybackMode.Pattern;
+            }
+            ImGui.PopID();
+
             ImGui.SameLine();
             ImGui.Spacing();
 

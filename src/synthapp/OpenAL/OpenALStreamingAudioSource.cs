@@ -17,7 +17,7 @@ namespace SynthApp.OpenAL
 
         public uint SamplesProcessed => (uint)(_samplesProcessed + _currentBufferSamplesProcessed);
 
-        public uint BufferedSamples { get; set; } = 2000;
+        public uint BufferedSamples { get; set; }
 
         public StreamingDataProvider DataProvider { get => _dataProvider; set => _dataProvider = value; }
 

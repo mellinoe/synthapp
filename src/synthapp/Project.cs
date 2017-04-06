@@ -7,6 +7,7 @@ namespace SynthApp
     {
         public List<Channel> Channels { get; set; } = new List<Channel>();
         public List<Pattern> Patterns { get; set; } = new List<Pattern>();
+        public Playlist SongPlaylist { get; set; } = new Playlist();
 
         public static Project CreateDefault()
         {

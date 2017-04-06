@@ -39,11 +39,11 @@ namespace SynthApp
             return latest < DefaultPatternDuration ? DefaultPatternDuration : latest;
         }
 
-        public void GetNextNotes(uint start, uint sampleCount, uint sequencerPlaybackOffset, ChannelState channelState, uint channelIndex, bool wrap)
+        public void GetNextNotes(uint start, uint sampleCount, uint sequencerPlaybackOffset, uint patternSampleOffset, ChannelState channelState, uint channelIndex, bool wrap)
         {
             Debug.Assert(channelIndex < NoteSequences.Count);
             NoteSequence ns = NoteSequences[(int)channelIndex];
-            uint sampleWrapPosition = (uint)CalculateFinalNoteEndTime().ToSamplesAuto();
+            uint sampleWrapPosition = wrap ? (uint)CalculateFinalNoteEndTime().ToSamplesAuto() : uint.MaxValue;
             uint wrapOffset = 0;
             uint wrappedStart = start % sampleWrapPosition;
             if (wrappedStart != start)
@@ -53,13 +53,12 @@ namespace SynthApp
 
             foreach (var note in ns.Notes)
             {
-                if (note.StartTime.ToSamplesAuto() >= wrappedStart
-                    && note.StartTime.ToSamplesAuto() < wrappedStart + sampleCount)
+                if ((note.StartTime.ToSamplesAuto() + patternSampleOffset) >= wrappedStart
+                    && (note.StartTime.ToSamplesAuto() + patternSampleOffset) < wrappedStart + sampleCount)
                 {
-                    uint noteSampleStart = (uint)Math.Round(note.StartTime.ToSamplesAuto());
+                    uint noteSampleStart = (uint)Math.Round(note.StartTime.ToSamplesAuto() + patternSampleOffset);
                     uint noteSampleCount = (uint)Math.Round(note.Duration.ToSamplesAuto());
 
-                    PatternTime startOffset = PatternTime.Samples(wrapOffset + sequencerPlaybackOffset, Globals.SampleRate, Globals.BeatsPerMinute);
                     MaterializedNote mn = new MaterializedNote(
                         TuningSystem.EqualTemperament.GetFrequency(note.Pitch),
                         wrapOffset + sequencerPlaybackOffset + noteSampleStart,
@@ -78,7 +77,7 @@ namespace SynthApp
                 {
                     // TODO: This is awful
                     uint wrapCount = (uint)((double)(start + sampleCount) / sampleWrapPosition);
-                    GetNextNotes(sampleWrapPosition * wrapCount, wrappedRemainder, sequencerPlaybackOffset, channelState, channelIndex, false);
+                    GetNextNotes(sampleWrapPosition * wrapCount, wrappedRemainder, sequencerPlaybackOffset, patternSampleOffset, channelState, channelIndex, true);
                 }
             }
         }
