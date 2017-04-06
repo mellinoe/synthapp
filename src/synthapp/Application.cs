@@ -40,6 +40,7 @@ namespace SynthApp
         public InputTracker Input { get; } = new InputTracker();
         public int SelectedChannelIndex { get; set; }
         public Channel SelectedChannel => Project.Channels[SelectedChannelIndex];
+        public AudioStreamCombiner MasterCombiner => s_combiner;
 
         public double DesiredFramerate { get; set; } = 60.0;
         public bool LimitFrameRate { get; set; } = true;
@@ -76,6 +77,7 @@ namespace SynthApp
             s_livePlayer = new LiveNotePlayer();
             Sequencer = new Sequencer(s_livePlayer, Project.Channels.Count);
             s_combiner = new AudioStreamCombiner();
+            s_combiner.Gain = 0.5f;
             s_combiner.Add(Sequencer);
             s_streamSource = AudioEngine.CreateStreamingAudioSource(s_combiner, 2000);
             s_streamSource.DataProvider = s_combiner;
@@ -130,21 +132,6 @@ namespace SynthApp
             s_imguiRenderer.Update(deltaSeconds);
             s_imguiRenderer.OnInputUpdated(snapshot);
             Gui.DrawGui();
-
-            if (ImGui.Button("Play the pattern"))
-            {
-                Sequencer.Playing = true;
-            }
-            if (ImGui.Button("Stop"))
-            {
-                Sequencer.Stop();
-            }
-
-            float bpm = (float)Globals.BeatsPerMinute;
-            if (ImGui.DragFloat($"Beats per minute", ref bpm, 10, 500, 1f))
-            {
-                Globals.BeatsPerMinute = bpm;
-            }
         }
 
         private void Draw()

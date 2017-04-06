@@ -21,6 +21,10 @@ namespace SynthApp
 
         // Input fields
         private TextInputBuffer _projectPathInput = new TextInputBuffer(1024);
+        private readonly DeviceTexture2D _playButtonTexture;
+        private readonly DeviceTexture2D _stopButtonTexture;
+        private readonly ShaderTextureBinding _playButtonTextureBinding;
+        private readonly ShaderTextureBinding _stopButtonTextureBinding;
 
         public Sequencer Sequencer { get; private set; }
         public KeyboardLivePlayInput KeyboardInput { get; private set; }
@@ -30,6 +34,10 @@ namespace SynthApp
         public Gui(RenderContext rc, Sequencer sequencer, KeyboardLivePlayInput keyboardInput, LiveNotePlayer livePlayer)
         {
             _rc = rc;
+            _playButtonTexture = new ImageSharpTexture(Path.Combine(AppContext.BaseDirectory, "Assets", "Textures", "button_play.png")).CreateDeviceTexture(rc.ResourceFactory);
+            _playButtonTextureBinding = rc.ResourceFactory.CreateShaderTextureBinding(_playButtonTexture);
+            _stopButtonTexture = new ImageSharpTexture(Path.Combine(AppContext.BaseDirectory, "Assets", "Textures", "button_stop.png")).CreateDeviceTexture(rc.ResourceFactory);
+            _stopButtonTextureBinding = rc.ResourceFactory.CreateShaderTextureBinding(_stopButtonTexture);
             foreach (var type in Util.GetTypesWithAttribute(typeof(Gui).GetTypeInfo().Assembly, typeof(WidgetAttribute)))
             {
                 DrawerCache.AddDrawer((Drawer)Activator.CreateInstance(type));
@@ -44,6 +52,8 @@ namespace SynthApp
         public void DrawGui()
         {
             DrawMainMenu();
+
+            DrawTopLevelFrame();
 
             foreach (Channel channel in _channelWindowsOpen)
             {
@@ -177,6 +187,49 @@ namespace SynthApp
             {
                 Application.Instance.SaveCurrentProject();
             }
+        }
+
+        private void DrawTopLevelFrame()
+        {
+            ImGui.PushStyleVar(StyleVar.WindowRounding, 0f);
+            var io = ImGui.GetIO();
+            ImGui.SetNextWindowSize(new Vector2(io.DisplaySize.X, 60), SetCondition.Always);
+            ImGui.SetNextWindowPos(new Vector2(0, 20f), SetCondition.Always);
+            ImGui.BeginWindow("TopFrame", WindowFlags.NoTitleBar | WindowFlags.NoResize | WindowFlags.NoCollapse | WindowFlags.NoMove);
+
+            float gain = Application.Instance.MasterCombiner.Gain;
+            ImGui.PushItemWidth(80f);
+            if (ImGui.DragFloat($"Gain", ref gain, 0f, 2f, dragSpeed:.01f))
+            {
+                Application.Instance.MasterCombiner.Gain = gain;
+            }
+            ImGui.PopItemWidth();
+            ImGui.SameLine();
+
+            if (ImGui.ImageButton(ImGuiImageHelper.GetOrCreateImGuiBinding(_rc, _playButtonTextureBinding), new Vector2(35, 35), _rc.TopLeftUv, _rc.BottomRightUv, 0, Vector4.Zero, Vector4.One))
+            {
+                Sequencer.Playing = true;
+            }
+            ImGui.SameLine();
+            if (ImGui.ImageButton(ImGuiImageHelper.GetOrCreateImGuiBinding(_rc, _stopButtonTextureBinding), new Vector2(35, 35), _rc.TopLeftUv, _rc.BottomRightUv, 0, Vector4.Zero, Vector4.One))
+            {
+                Sequencer.Stop();
+            }
+
+            float bpm = (float)Globals.BeatsPerMinute;
+            ImGui.SameLine();
+            ImGui.PushItemWidth(80f);
+            if (ImGui.DragFloat($"BPM", ref bpm, 10, 500, 1f))
+            {
+                Globals.BeatsPerMinute = bpm;
+            }
+            ImGui.PopItemWidth();
+
+            ImGui.SameLine();
+            ImGui.Spacing();
+
+            ImGui.EndWindow();
+            ImGui.PopStyleVar();
         }
 
         private void SaveProjectTo(string fullPath)

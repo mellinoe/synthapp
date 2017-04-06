@@ -8,6 +8,8 @@ namespace SynthApp
     {
         private List<StreamingDataProvider> _dataProviders = new List<StreamingDataProvider>(2);
 
+        public float Gain { get; set; } = 1f;
+
         public void Add(StreamingDataProvider provider)
         {
             _dataProviders.Add(provider);
@@ -24,18 +26,18 @@ namespace SynthApp
             foreach (StreamingDataProvider provider in _dataProviders)
             {
                 short[] providerData = provider.GetNextAudioChunk(numSamples);
-                MixClamped(data, providerData);
+                MixClamped(data, providerData, Gain);
             }
 
             return data;
         }
 
-        private void MixClamped(short[] dest, short[] added)
+        private void MixClamped(short[] dest, short[] added, float gain)
         {
             Debug.Assert(dest.Length == added.Length);
             for (int i = 0; i < dest.Length; i++)
             {
-                int value = dest[i] + added[i];
+                int value = (int)Math.Round((dest[i] + added[i]) * Gain);
                 dest[i] = (short)Util.Clamp(value, short.MinValue, short.MaxValue);
             }
         }
