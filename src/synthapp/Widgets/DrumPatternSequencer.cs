@@ -10,8 +10,8 @@ namespace SynthApp.Widgets
 {
     public class DrumPatternSequencer
     {
-        private static readonly Vector2 ButtonSize = new Vector2(40, 60);
-        private static readonly float Margin = 5f;
+        public static readonly Vector2 ButtonSize = new Vector2(40, 60);
+        public static readonly float Margin = 5f;
 
         public static bool DrawDrumSequencer(uint id, NoteSequence ns, uint steps, uint patternLength, bool repeat)
         {

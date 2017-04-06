@@ -199,7 +199,7 @@ namespace SynthApp
 
             float gain = Application.Instance.MasterCombiner.Gain;
             ImGui.PushItemWidth(80f);
-            if (ImGui.DragFloat($"Gain", ref gain, 0f, 2f, dragSpeed:.01f))
+            if (ImGui.DragFloat($"Gain", ref gain, 0f, 2f, dragSpeed: .01f))
             {
                 Application.Instance.MasterCombiner.Gain = gain;
             }
@@ -275,7 +275,15 @@ namespace SynthApp
                 {
                     ImGui.PushID("ChannelList" + i);
                     Channel channel = channels[i];
-                    if (ImGui.Button($"[Channel {i}] {channel.Name}"))
+                    // Left-side pane for channel info and common controls
+                    ImGui.BeginChildFrame(unchecked((uint)$"Left{i}".GetHashCode()), new Vector2(180, DrumPatternSequencer.GetFrameSize(16).Y), WindowFlags.ShowBorders);
+                    bool muted = channel.Muted;
+                    if (ImGui.Checkbox("Mute", ref muted))
+                    {
+                        channel.Muted = muted;
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button($"{channel.Name}"))
                     {
                         Application.Instance.SelectedChannelIndex = i;
                         OpenChannelWindow(channel);
@@ -296,6 +304,12 @@ namespace SynthApp
                         }
                         ImGui.EndPopup();
                     }
+                    float gain = channel.Gain;
+                    if (ImGui.DragFloat("Gain", ref gain, 0f, 2f, dragSpeed: 0.01f))
+                    {
+                        channel.Gain = gain;
+                    }
+                    ImGui.EndChildFrame();
 
                     if (ns.Notes.Count == 0)
                     {
@@ -316,7 +330,7 @@ namespace SynthApp
                         if (PianoRoll.DrawPreviewOnly(ns, patternLength, DrumPatternSequencer.GetFrameSize(16), false))
                         {
                             Application.Instance.SelectedChannelIndex = i;
-                            PianoRoll.Focus();
+                            PianoRoll.Focus(pattern.NoteSequences[i].Notes.FirstOrDefault()?.Pitch ?? Pitch.MiddleC);
                         }
                         ImGui.SameLine();
                         ImGui.InvisibleButton("FAKEBUTTON", DrumPatternSequencer.GetFrameSize(16));

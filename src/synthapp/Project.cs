@@ -12,18 +12,22 @@ namespace SynthApp
         {
             var channels = new List<Channel>();
             var tri = new SimpleOscillatorSynth();
+            tri.Name = "Triangle Synth";
             tri.Generator.Type = SimpleWaveformGenerator.WaveformType.Square;
             channels.Add(tri);
 
             var saw = new SimpleOscillatorSynth();
+            saw.Name = "Saw Synth";
             saw.Generator.Type = SimpleWaveformGenerator.WaveformType.Sawtooth;
             channels.Add(saw);
 
             var sine = new SimpleOscillatorSynth();
+            sine.Name = "Sine Synth";
             sine.Generator.Type = SimpleWaveformGenerator.WaveformType.Sine;
             channels.Add(sine);
 
             var kick = new WaveSampler(@"E:\Audio\vengeance essential club sounds-3\vengeance essential club sounds-3\VEC3 Bassdrums\VEC3 Clubby Kicks\VEC3 Bassdrums Clubby 001.wav");
+            kick.Name = "Kick Sampler";
             channels.Add(kick);
             kick.Gain = 0.85f;
 

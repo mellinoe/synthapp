@@ -31,7 +31,7 @@ namespace SynthApp
         private bool _dragScrolling;
         private Vector2 _dragScrollPos;
         private PatternTime _newNoteDuration = PatternTime.Steps(2);
-        private bool _shouldFocus;
+        private Pitch? _focusPitch;
 
         public PianoRoll(LiveNotePlayer livePlayer)
         {
@@ -48,9 +48,8 @@ namespace SynthApp
             bool opened = Application.Instance.SelectedChannel != null;
             if (opened)
             {
-                if (_shouldFocus)
+                if (_focusPitch != null)
                 {
-                    _shouldFocus = false;
                     ImGui.SetNextWindowFocus();
                 }
                 if (ImGui.BeginWindow("Piano Roll", ref opened, 1.0f, WindowFlags.NoScrollWithMouse | WindowFlags.NoScrollbar | WindowFlags.MenuBar))
@@ -83,6 +82,13 @@ namespace SynthApp
                     ImGui.BeginChild("NoMoveChild", false, WindowFlags.NoMove | WindowFlags.NoScrollbar);
                     Vector2 totalSize = new Vector2(gridWidth, (_topPitch + 1) * _pitchHeight);
                     Vector2 gridSize = ImGui.GetWindowSize() - new Vector2(_pianoKeyWidth, _bottomPanelHeight);
+
+                    if (_focusPitch != null)
+                    {
+                        float topY = GetPitchStartY(_focusPitch.Value);
+                        _viewOffset = new Vector2(0, -topY + gridSize.Y / 2f);
+                        _focusPitch = null;
+                    }
 
                     // Draw note grid first
                     dl.PushClipRect(gridPos, gridPos + gridSize, true);
@@ -323,9 +329,9 @@ namespace SynthApp
             return false;
         }
 
-        public void Focus()
+        public void Focus(Pitch pitch)
         {
-            _shouldFocus = true;
+            _focusPitch = pitch;
         }
 
         private static unsafe NoteSequence GetActiveNoteSequence()
@@ -483,11 +489,16 @@ namespace SynthApp
         {
             int stepDiff = (int)(note.StartTime.Step - _leftmostStep);
             float x = stepDiff * _stepWidth;
-
-            int pitchDiff = _topPitch - note.Pitch.Value;
-            float y = pitchDiff * _pitchHeight;
+            float y = GetPitchStartY(note.Pitch);
 
             return new Vector2(x, y);
+        }
+
+        private float GetPitchStartY(Pitch pitch)
+        {
+            int pitchDiff = _topPitch - pitch.Value;
+            float y = pitchDiff * _pitchHeight;
+            return y;
         }
 
         private byte GetPitchValue(Vector2 pos)
