@@ -11,7 +11,6 @@ namespace SynthApp
 
         public Playlist()
         {
-            Entries.Add(new PlaylistEntry() { PatternIndex = 0, SongStepOffset = 0 });
         }
     }
 
@@ -19,5 +18,9 @@ namespace SynthApp
     {
         public int PatternIndex { get; set; }
         public ulong SongStepOffset { get; set; }
+        /// <summary>
+        /// The row in the playlist that this entry appears. "0" is the top grid row. This is only used for display purposes.
+        /// </summary>
+        public uint GridRow { get; set; }
     }
 }

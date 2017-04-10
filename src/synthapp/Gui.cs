@@ -306,6 +306,16 @@ namespace SynthApp
                     {
                         channel.Muted = muted;
                     }
+                    if (ImGui.BeginPopupContextItem($"{i}_MC", 1))
+                    {
+                        if (ImGui.MenuItem("Solo"))
+                        {
+                            ToggleSolo(channels, i);
+                        }
+
+                        ImGui.EndPopup();
+                    }
+
                     ImGui.SameLine();
                     if (ImGui.Button($"{channel.Name}"))
                     {
@@ -372,6 +382,46 @@ namespace SynthApp
                 }
             }
             ImGui.EndWindow();
+        }
+
+        private static void ToggleSolo(IReadOnlyList<Channel> channels, int channelIndex)
+        {
+            bool alreadySolo = false;
+
+            for (int i = 0; i < channels.Count; i++)
+            {
+                if (i != channelIndex && !channels[i].Muted)
+                {
+                    alreadySolo = false;
+                    break;
+                }
+                else if (i == channelIndex && !channels[i].Muted)
+                {
+                    alreadySolo = true;
+                }
+            }
+
+            if (alreadySolo)
+            {
+                // Enable every channel.
+                for (int i = 0; i < channels.Count; i++)
+                {
+                    channels[i].Muted = false;
+                }
+            }
+            else
+            {
+                // Disable every channel except the selected.
+                for (int i = 0; i < channels.Count; i++)
+                {
+                    if (i != channelIndex)
+                    {
+                        channels[i].Muted = true;
+                    }
+                }
+
+                channels[channelIndex].Muted = false;
+            }
         }
 
         private bool DrawChannelOptionMenuItems(out Channel channel)

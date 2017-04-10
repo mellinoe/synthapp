@@ -4,9 +4,9 @@ namespace SynthApp
 {
     public class TripleOscillatorSynth : Channel
     {
-        private SimpleWaveformGenerator _generator1 = new SimpleWaveformGenerator(Globals.SampleRate);
-        private SimpleWaveformGenerator _generator2 = new SimpleWaveformGenerator(Globals.SampleRate);
-        private SimpleWaveformGenerator _generator3 = new SimpleWaveformGenerator(Globals.SampleRate);
+        private SimpleWaveformGenerator _generator1 = new SimpleWaveformGenerator(Globals.SampleRate) { Gain = 0.3f };
+        private SimpleWaveformGenerator _generator2 = new SimpleWaveformGenerator(Globals.SampleRate) { Gain = 0.3f };
+        private SimpleWaveformGenerator _generator3 = new SimpleWaveformGenerator(Globals.SampleRate) { Gain = 0.3f };
 
         public SimpleWaveformGenerator Generator1 => _generator1;
         public SimpleWaveformGenerator Generator2 => _generator2;

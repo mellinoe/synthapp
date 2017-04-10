@@ -12,10 +12,10 @@ namespace SynthApp
         public static Project CreateDefault()
         {
             var channels = new List<Channel>();
-            var tri = new SimpleOscillatorSynth();
-            tri.Name = "Triangle Synth";
-            tri.Generator.Type = SimpleWaveformGenerator.WaveformType.Square;
-            channels.Add(tri);
+            var square = new SimpleOscillatorSynth();
+            square.Name = "Square Synth";
+            square.Generator.Type = SimpleWaveformGenerator.WaveformType.Square;
+            channels.Add(square);
 
             var saw = new SimpleOscillatorSynth();
             saw.Name = "Saw Synth";
@@ -34,19 +34,19 @@ namespace SynthApp
 
             var pattern = new Pattern(channels);
 
-            NoteSequence triPattern = new NoteSequence();
-            triPattern.Notes.Add(new Note(PatternTime.Steps(2), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
-            triPattern.Notes.Add(new Note(PatternTime.Steps(6), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
-            triPattern.Notes.Add(new Note(PatternTime.Steps(10), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
-            triPattern.Notes.Add(new Note(PatternTime.Steps(14), PatternTime.Steps(1), new Pitch(PitchClass.A, 2)));
-            triPattern.Notes.Add(new Note(PatternTime.Steps(15), PatternTime.Steps(1), new Pitch(PitchClass.A, 3)));
-            triPattern.Notes.Add(new Note(PatternTime.Steps(18), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
-            triPattern.Notes.Add(new Note(PatternTime.Steps(22), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
-            triPattern.Notes.Add(new Note(PatternTime.Steps(26), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
-            triPattern.Notes.Add(new Note(PatternTime.Steps(30), PatternTime.Steps(1), new Pitch(PitchClass.A, 2)));
-            triPattern.Notes.Add(new Note(PatternTime.Steps(31), PatternTime.Steps(1), new Pitch(PitchClass.A, 3)));
-            triPattern.UsesPianoRoll = true;
-            pattern.NoteSequences[0] = triPattern;
+            NoteSequence squarePattern = new NoteSequence();
+            squarePattern.Notes.Add(new Note(PatternTime.Steps(2), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
+            squarePattern.Notes.Add(new Note(PatternTime.Steps(6), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
+            squarePattern.Notes.Add(new Note(PatternTime.Steps(10), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
+            squarePattern.Notes.Add(new Note(PatternTime.Steps(14), PatternTime.Steps(1), new Pitch(PitchClass.A, 2)));
+            squarePattern.Notes.Add(new Note(PatternTime.Steps(15), PatternTime.Steps(1), new Pitch(PitchClass.A, 3)));
+            squarePattern.Notes.Add(new Note(PatternTime.Steps(18), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
+            squarePattern.Notes.Add(new Note(PatternTime.Steps(22), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
+            squarePattern.Notes.Add(new Note(PatternTime.Steps(26), PatternTime.Steps(2), new Pitch(PitchClass.A, 2)));
+            squarePattern.Notes.Add(new Note(PatternTime.Steps(30), PatternTime.Steps(1), new Pitch(PitchClass.A, 2)));
+            squarePattern.Notes.Add(new Note(PatternTime.Steps(31), PatternTime.Steps(1), new Pitch(PitchClass.A, 3)));
+            squarePattern.UsesPianoRoll = true;
+            pattern.NoteSequences[0] = squarePattern;
 
             NoteSequence sawPattern = new NoteSequence();
             sawPattern.Notes.Add(new Note(PatternTime.Steps(0), PatternTime.Steps(2), new Pitch(PitchClass.CSharp, 4)));
