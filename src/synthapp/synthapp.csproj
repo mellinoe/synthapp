@@ -1,18 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build;Publish">
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageTargetFallback>portable-net45+win8+wpa81</PackageTargetFallback>
     <OutputType>exe</OutputType>
-    <RuntimeIdentifiers>win7-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;osx.10.10-x64</RuntimeIdentifiers>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>SynthApp</RootNamespace>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
-  <ItemGroup>
-    <None Remove="Assets\HLSL\imgui-frag.hlsl" />
-    <None Remove="Assets\HLSL\imgui-vertex.hlsl" />
-  </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\Textures\button_play.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -22,30 +15,11 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(ExtDir)\imgui.net\deps\cimgui\win7-x64\cimgui.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>cimgui.dll</Link>
-    </Content>
-    <Content Condition="'$(RuntimeIdentifier)' == 'ubuntu.16.04-x64'" Include="$(ExtDir)\imgui.net\deps\cimgui\ubuntu.14.04-x64\cimgui.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>cimgui.so</Link>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Assets\GLSL\imgui-frag.glsl" />
-    <EmbeddedResource Include="Assets\GLSL\imgui-vertex.glsl" />
-    <EmbeddedResource Include="Assets\HLSL\imgui-frag.hlsl" />
-    <EmbeddedResource Include="Assets\HLSL\imgui-vertex.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="$(ExtDir)\veldrid\src\Veldrid\Veldrid.csproj" />
-    <ProjectReference Include="$(ExtDir)\imgui.net\src\ImGui.NET\ImGui.NET.csproj" />
+    <ProjectReference Include="$(ExtDir)\veldrid\src\Veldrid.ImGui\Veldrid.ImGui.csproj" />
+    <ProjectReference Include="$(ExtDir)\veldrid\src\Veldrid.Sdl2\Veldrid.Sdl2.csproj" />
+    <ProjectReference Include="$(ExtDir)\veldrid\src\Veldrid.StartupUtilities\Veldrid.StartupUtilities.csproj" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
-    <PackageReference Include="SharpDX.XAudio2" Version="3.0.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Update="E:\projects\synthapp\\ext\imgui.net\deps\cimgui\win7-x64\cimgui.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <PackageReference Include="SharpDX.XAudio2" Version="4.0.1" />
   </ItemGroup>
 </Project>

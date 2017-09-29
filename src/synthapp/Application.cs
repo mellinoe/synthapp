@@ -1,17 +1,14 @@
-﻿using ImGuiNET;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using SynthApp.OpenAL;
 using SynthApp.XAudio2;
-using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Veldrid;
 using Veldrid.Graphics;
-using Veldrid.Graphics.Direct3D;
-using Veldrid.Graphics.OpenGL;
 using Veldrid.Platform;
+using Veldrid.Sdl2;
+using Veldrid.StartupUtilities;
 
 namespace SynthApp
 {
@@ -20,8 +17,8 @@ namespace SynthApp
     /// </summary>
     public class Application
     {
-        private readonly OpenTKWindow window;
-        private readonly RenderContext s_rc;
+        private readonly Sdl2Window _window;
+        private readonly RenderContext _rc;
         private readonly ImGuiRenderer s_imguiRenderer;
         private readonly LiveNotePlayer s_livePlayer;
         private readonly AudioStreamCombiner s_combiner;
@@ -49,20 +46,25 @@ namespace SynthApp
         public bool LimitFrameRate { get; set; } = true;
 
         public static Application Instance { get; private set; }
+        public Sdl2Window Window => _window;
 
         public Application()
         {
             Debug.Assert(Instance == null);
             Instance = this;
-            window = new DedicatedThreadWindow(960, 540, WindowState.Maximized);
-            window.Title = "Synth";
-            s_rc = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? (RenderContext)new D3DRenderContext(window)
-                : new OpenGLRenderContext(window);
-            s_rc.ResourceFactory.AddShaderLoader(new EmbeddedResourceShaderLoader(typeof(Application).GetTypeInfo().Assembly));
-            s_rc.ClearColor = RgbaFloat.Grey;
-            window.Visible = true;
-            s_imguiRenderer = new ImGuiRenderer(s_rc, window.NativeWindow);
+            WindowCreateInfo wci = new WindowCreateInfo();
+            wci.X = 50;
+            wci.WindowWidth = 960;
+            wci.WindowHeight = 540;
+            wci.WindowInitialState = WindowState.Maximized;
+            RenderContextCreateInfo rcci = new RenderContextCreateInfo();
+
+            VeldridStartup.CreateWindowAndRenderContext(ref wci, ref rcci, out _window, out _rc);
+            _window.Title = "Synth";
+            _rc.ClearColor = RgbaFloat.Grey;
+            _window.Visible = true;
+            s_imguiRenderer = new ImGuiRenderer(_rc, _window.Width, _window.Height);
+            _window.Resized += () => s_imguiRenderer.WindowResized(_window.Width, _window.Height);
             CustomStyle.ActivateStyle2(true, 1f);
 
             SerializationServices = new SerializationServices();
@@ -88,7 +90,7 @@ namespace SynthApp
 
             s_keyboardInput = new KeyboardLivePlayInput(s_livePlayer, s_streamSource);
 
-            Gui = new Gui(s_rc, Sequencer, s_keyboardInput, s_livePlayer);
+            Gui = new Gui(_rc, Sequencer, s_keyboardInput, s_livePlayer);
 
             Debug.Assert(Project != null);
         }
@@ -103,7 +105,7 @@ namespace SynthApp
             _sw = Stopwatch.StartNew();
             _fta = new FrameTimeAverager(666.666);
 
-            while (window.Exists)
+            while (_window.Exists)
             {
                 double desiredFrameTime = 1000.0 / DesiredFramerate;
                 long currentFrameTicks = _sw.ElapsedTicks;
@@ -118,15 +120,15 @@ namespace SynthApp
                 _previousFrameTicks = currentFrameTicks;
                 float deltaSeconds = (float)deltaMilliseconds / 1000.0f;
                 _fta.AddTime(deltaMilliseconds);
-                window.Title = "Synth (" + _fta.CurrentAverageFramesPerSecond.ToString("##.00") + " fps)";
+                _window.Title = "Synth (" + _fta.CurrentAverageFramesPerSecond.ToString("##.00") + " fps)";
 
-                InputSnapshot snapshot = window.GetInputSnapshot();
+                InputSnapshot snapshot = _window.PumpEvents();
                 Input.UpdateFrameInput(snapshot);
-                s_rc.Viewport = new Viewport(0, 0, s_rc.Window.Width, s_rc.Window.Height);
-                s_rc.ClearBuffer();
+                _rc.Viewport = new Viewport(0, 0, _window.Width, _window.Height);
+                _rc.ClearBuffer();
                 Update(deltaSeconds, snapshot);
                 Draw();
-                s_rc.SwapBuffers();
+                _rc.SwapBuffers();
             }
         }
 
@@ -139,7 +141,7 @@ namespace SynthApp
 
         private void Draw()
         {
-            s_imguiRenderer.Render(s_rc, "Standard");
+            s_imguiRenderer.Render(_rc);
         }
 
         public void LoadProject(string path)

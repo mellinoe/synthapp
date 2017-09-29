@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8+wpa81</PackageTargetFallback>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <DefaultNamespace>SynthApp</DefaultNamespace>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <OutputType>Library</OutputType>
   </PropertyGroup>
   <ItemGroup>

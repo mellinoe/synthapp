@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "synthapp", "synthapp\synthapp.csproj", "{672179B3-D91C-49F2-9817-BB92B1D003FC}"
 EndProject
@@ -8,7 +8,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "synthapp.tests", "synthapp.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Veldrid", "..\ext\veldrid\src\Veldrid\Veldrid.csproj", "{1046603F-E566-4FC2-A3FA-7DA00C15CB73}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImGui.NET", "..\ext\imgui.net\src\ImGui.NET\ImGui.NET.csproj", "{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Veldrid.ImGui", "..\ext\veldrid\src\Veldrid.ImGui\Veldrid.ImGui.csproj", "{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,20 +56,23 @@ Global
 		{1046603F-E566-4FC2-A3FA-7DA00C15CB73}.Release|x64.Build.0 = Release|Any CPU
 		{1046603F-E566-4FC2-A3FA-7DA00C15CB73}.Release|x86.ActiveCfg = Release|Any CPU
 		{1046603F-E566-4FC2-A3FA-7DA00C15CB73}.Release|x86.Build.0 = Release|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Debug|x64.Build.0 = Debug|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Debug|x86.Build.0 = Debug|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Release|x64.ActiveCfg = Release|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Release|x64.Build.0 = Release|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Release|x86.ActiveCfg = Release|Any CPU
-		{6C6AABD1-3003-4994-BA75-2F39F7B96DC5}.Release|x86.Build.0 = Release|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Debug|x64.Build.0 = Debug|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Debug|x86.Build.0 = Debug|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Release|x64.ActiveCfg = Release|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Release|x64.Build.0 = Release|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Release|x86.ActiveCfg = Release|Any CPU
+		{68E21AE9-A959-417E-95C6-7E8A4A3EB40A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1F47612F-D1EE-4C30-81D8-DFC4F83FE6DD}
 	EndGlobalSection
 EndGlobal

@@ -8,6 +8,7 @@ using System.Numerics;
 using Veldrid.Platform;
 using System.Reflection;
 using System.Linq;
+using Veldrid;
 
 namespace SynthApp
 {
@@ -103,7 +104,7 @@ namespace SynthApp
                     ImGui.Separator();
                     if (ImGui.MenuItem("Exit"))
                     {
-                        _rc.Window.Close();
+                        Application.Instance.Window.Close();
                     }
 
                     ImGui.EndMenu();
