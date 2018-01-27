@@ -1,12 +1,12 @@
 ﻿using ImGuiNET;
-using Veldrid.Graphics;
+using Veldrid;
 
 namespace SynthApp.Widgets
 {
     [Widget]
     public class WaveSamplerWidget : Drawer<WaveSampler>
     {
-        public override bool Draw(string label, ref WaveSampler ws, RenderContext rc)
+        public override bool Draw(string label, ref WaveSampler ws, GraphicsDevice rc)
         {
             bool muted = ws.Muted;
             if (ImGui.Checkbox("Muted", ref muted))

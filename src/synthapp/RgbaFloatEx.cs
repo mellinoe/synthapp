@@ -1,4 +1,4 @@
-﻿using Veldrid.Graphics;
+﻿using Veldrid;
 
 namespace SynthApp
 {

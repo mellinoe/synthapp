@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
-using Veldrid.Platform;
+using Veldrid;
 
 namespace SynthApp
 {

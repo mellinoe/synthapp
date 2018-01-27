@@ -1,20 +1,19 @@
 ﻿using System;
 using ImGuiNET;
-using Veldrid.Graphics;
 using System.Collections.Generic;
 using System.IO;
 using SynthApp.Widgets;
 using System.Numerics;
-using Veldrid.Platform;
 using System.Reflection;
 using System.Linq;
 using Veldrid;
+using Veldrid.ImageSharp;
 
 namespace SynthApp
 {
     public class Gui
     {
-        private readonly RenderContext _rc;
+        private readonly GraphicsDevice _gd;
 
         private readonly HashSet<Channel> _channelWindowsOpen = new HashSet<Channel>();
         private readonly HashSet<Channel> _channelWindowsClosed = new HashSet<Channel>();
@@ -22,23 +21,25 @@ namespace SynthApp
 
         // Input fields
         private TextInputBuffer _projectPathInput = new TextInputBuffer(1024);
-        private readonly DeviceTexture2D _playButtonTexture;
-        private readonly DeviceTexture2D _stopButtonTexture;
-        private readonly ShaderTextureBinding _playButtonTextureBinding;
-        private readonly ShaderTextureBinding _stopButtonTextureBinding;
+        private readonly Texture _playButtonTexture;
+        private readonly Texture _stopButtonTexture;
+        private readonly TextureView _playButtonTextureBinding;
+        private readonly TextureView _stopButtonTextureBinding;
+        private readonly ImGuiRenderer _imguiRenderer;
 
         public Sequencer Sequencer { get; private set; }
         public KeyboardLivePlayInput KeyboardInput { get; private set; }
         public LiveNotePlayer LivePlayer { get; private set; }
         public PianoRoll PianoRoll { get; }
 
-        public Gui(RenderContext rc, Sequencer sequencer, KeyboardLivePlayInput keyboardInput, LiveNotePlayer livePlayer)
+
+        public Gui(GraphicsDevice gd, Sequencer sequencer, KeyboardLivePlayInput keyboardInput, LiveNotePlayer livePlayer, ImGuiRenderer imguiRenderer)
         {
-            _rc = rc;
-            _playButtonTexture = new ImageSharpTexture(Path.Combine(AppContext.BaseDirectory, "Assets", "Textures", "button_play.png")).CreateDeviceTexture(rc.ResourceFactory);
-            _playButtonTextureBinding = rc.ResourceFactory.CreateShaderTextureBinding(_playButtonTexture);
-            _stopButtonTexture = new ImageSharpTexture(Path.Combine(AppContext.BaseDirectory, "Assets", "Textures", "button_stop.png")).CreateDeviceTexture(rc.ResourceFactory);
-            _stopButtonTextureBinding = rc.ResourceFactory.CreateShaderTextureBinding(_stopButtonTexture);
+            _gd = gd;
+            _playButtonTexture = new ImageSharpTexture(Path.Combine(AppContext.BaseDirectory, "Assets", "Textures", "button_play.png")).CreateDeviceTexture(gd, gd.ResourceFactory);
+            _playButtonTextureBinding = gd.ResourceFactory.CreateTextureView(_playButtonTexture);
+            _stopButtonTexture = new ImageSharpTexture(Path.Combine(AppContext.BaseDirectory, "Assets", "Textures", "button_stop.png")).CreateDeviceTexture(gd, gd.ResourceFactory);
+            _stopButtonTextureBinding = gd.ResourceFactory.CreateTextureView(_stopButtonTexture);
             foreach (var type in Util.GetTypesWithAttribute(typeof(Gui).GetTypeInfo().Assembly, typeof(WidgetAttribute)))
             {
                 DrawerCache.AddDrawer((Drawer)Activator.CreateInstance(type));
@@ -48,6 +49,7 @@ namespace SynthApp
             KeyboardInput = keyboardInput;
             LivePlayer = livePlayer;
             PianoRoll = new PianoRoll(LivePlayer);
+            _imguiRenderer = imguiRenderer;
         }
 
         public void DrawGui()
@@ -194,8 +196,8 @@ namespace SynthApp
         {
             ImGui.PushStyleVar(StyleVar.WindowRounding, 0f);
             var io = ImGui.GetIO();
-            ImGui.SetNextWindowSize(new Vector2(io.DisplaySize.X, 60), SetCondition.Always);
-            ImGui.SetNextWindowPos(new Vector2(0, 20f), SetCondition.Always);
+            ImGui.SetNextWindowSize(new Vector2(io.DisplaySize.X, 60), Condition.Always);
+            ImGui.SetNextWindowPos(new Vector2(0, 20f), Condition.Always, Vector2.Zero);
             ImGui.BeginWindow("TopFrame", WindowFlags.NoTitleBar | WindowFlags.NoResize | WindowFlags.NoCollapse | WindowFlags.NoMove);
 
             float gain = Application.Instance.MasterCombiner.Gain;
@@ -207,12 +209,16 @@ namespace SynthApp
             ImGui.PopItemWidth();
             ImGui.SameLine();
 
-            if (ImGui.ImageButton(ImGuiImageHelper.GetOrCreateImGuiBinding(_rc, _playButtonTextureBinding), new Vector2(35, 35), _rc.TopLeftUv, _rc.BottomRightUv, 0, Vector4.Zero, Vector4.One))
+            if (ImGui.ImageButton(
+                _imguiRenderer.GetOrCreateImGuiBinding(_gd.ResourceFactory, _playButtonTextureBinding),
+                new Vector2(35, 35), Vector2.Zero, Vector2.One, 0, Vector4.Zero, Vector4.One))
             {
                 Sequencer.Playing = true;
             }
             ImGui.SameLine();
-            if (ImGui.ImageButton(ImGuiImageHelper.GetOrCreateImGuiBinding(_rc, _stopButtonTextureBinding), new Vector2(35, 35), _rc.TopLeftUv, _rc.BottomRightUv, 0, Vector4.Zero, Vector4.One))
+            if (ImGui.ImageButton(
+                _imguiRenderer.GetOrCreateImGuiBinding(_gd.ResourceFactory, _stopButtonTextureBinding),
+                new Vector2(35, 35), Vector2.Zero, Vector2.One, 0, Vector4.Zero, Vector4.One))
             {
                 Sequencer.Stop();
             }
@@ -301,7 +307,7 @@ namespace SynthApp
                     ImGui.PushID("ChannelList" + i);
                     Channel channel = channels[i];
                     // Left-side pane for channel info and common controls
-                    ImGui.BeginChildFrame(unchecked((uint)$"Left{i}".GetHashCode()), new Vector2(180, DrumPatternSequencer.GetFrameSize(16).Y), WindowFlags.ShowBorders);
+                    ImGui.BeginChildFrame(unchecked((uint)$"Left{i}".GetHashCode()), new Vector2(180, DrumPatternSequencer.GetFrameSize(16).Y), WindowFlags.Default);
                     bool muted = channel.Muted;
                     if (ImGui.Checkbox("Mute", ref muted))
                     {
@@ -460,7 +466,7 @@ namespace SynthApp
         private bool Draw<T>(string label, ref T obj)
         {
             object o = obj;
-            if (DrawerCache.GetDrawer(typeof(T)).Draw(label, ref o, _rc))
+            if (DrawerCache.GetDrawer(typeof(T)).Draw(label, ref o, _gd))
             {
                 obj = (T)o;
                 return true;
@@ -481,7 +487,7 @@ namespace SynthApp
             {
                 var drawer = DrawerCache.GetDrawer(channel.GetType());
                 object o = channel;
-                if (drawer.Draw($"{channel.Name}###Channel{channel.ID}", ref o, _rc))
+                if (drawer.Draw($"{channel.Name}###Channel{channel.ID}", ref o, _gd))
                 {
                     throw new NotImplementedException();
                 }

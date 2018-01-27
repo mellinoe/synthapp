@@ -1,5 +1,5 @@
 ﻿using ImGuiNET;
-using Veldrid.Graphics;
+using Veldrid;
 
 namespace SynthApp.Widgets
 {
@@ -8,7 +8,7 @@ namespace SynthApp.Widgets
     {
         private readonly EnumDrawer _pitchClassDrawer = new EnumDrawer(typeof(PitchClass));
 
-        public override bool Draw(string label, ref Pitch obj, RenderContext rc)
+        public override bool Draw(string label, ref Pitch obj, GraphicsDevice rc)
         {
             bool changed = false;
             object pc = obj.PitchClass;

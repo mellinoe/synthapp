@@ -1,13 +1,13 @@
 ﻿using ImGuiNET;
 using System;
-using Veldrid.Graphics;
+using Veldrid;
 
 namespace SynthApp.Widgets
 {
     [Widget]
     public class SimpleOscillatorSynthWidget : Drawer<SimpleOscillatorSynth>
     {
-        public override bool Draw(string label, ref SimpleOscillatorSynth sos, RenderContext rc)
+        public override bool Draw(string label, ref SimpleOscillatorSynth sos, GraphicsDevice rc)
         {
             bool muted = sos.Muted;
             if (ImGui.Checkbox("Muted", ref muted))

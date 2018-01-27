@@ -15,11 +15,12 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(ExtDir)\veldrid\src\Veldrid\Veldrid.csproj" />
-    <ProjectReference Include="$(ExtDir)\veldrid\src\Veldrid.ImGui\Veldrid.ImGui.csproj" />
-    <ProjectReference Include="$(ExtDir)\veldrid\src\Veldrid.Sdl2\Veldrid.Sdl2.csproj" />
-    <ProjectReference Include="$(ExtDir)\veldrid\src\Veldrid.StartupUtilities\Veldrid.StartupUtilities.csproj" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
     <PackageReference Include="SharpDX.XAudio2" Version="4.0.1" />
+    <PackageReference Include="Veldrid" Version="4.0.0" />
+    <PackageReference Include="Veldrid.ImageSharp" Version="4.0.0" />
+    <PackageReference Include="Veldrid.ImGui" Version="4.0.0" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.0.0" />
+    <PackageReference Include="OpenTK.NETCore" Version="1.1.2749.6433" />
   </ItemGroup>
 </Project>

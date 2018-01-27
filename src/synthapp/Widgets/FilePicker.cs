@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using Veldrid.Graphics;
+using Veldrid;
 
 namespace SynthApp.Widgets
 {
@@ -61,7 +61,7 @@ namespace SynthApp.Widgets
             }
 
             bool result = false;
-            ImGui.SetNextWindowSize(DefaultFilePickerSize, SetCondition.FirstUseEver);
+            ImGui.SetNextWindowSize(DefaultFilePickerSize, Condition.FirstUseEver);
             if (ImGui.BeginPopupModal(FilePickerID, WindowFlags.NoTitleBar))
             {
                 result = DrawFolder(ref selected, true);
@@ -71,12 +71,12 @@ namespace SynthApp.Widgets
             return result;
         }
 
-        private bool DrawFolder(ref string selected, bool returnOnSelection  = false)
+        private bool DrawFolder(ref string selected, bool returnOnSelection = false)
         {
             ImGui.Text("Current Folder: " + CurrentFolder);
             bool result = false;
 
-            if (ImGui.BeginChildFrame(1, new Vector2(0, 600), WindowFlags.ShowBorders))
+            if (ImGui.BeginChildFrame(1, new Vector2(0, 600), WindowFlags.Default))
             {
                 DirectoryInfo di = new DirectoryInfo(CurrentFolder);
                 if (di.Exists)
@@ -115,7 +115,7 @@ namespace SynthApp.Widgets
                                     selected = SelectedFile;
                                 }
                             }
-                            if (ImGui.IsLastItemHovered() && ImGui.IsMouseDoubleClicked(0))
+                            if (ImGui.IsMouseDoubleClicked(0))
                             {
                                 result = true;
                                 selected = SelectedFile;

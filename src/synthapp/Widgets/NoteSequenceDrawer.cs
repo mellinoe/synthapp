@@ -1,13 +1,13 @@
 ﻿using ImGuiNET;
 using System.Collections.Generic;
-using Veldrid.Graphics;
+using Veldrid;
 
 namespace SynthApp.Widgets
 {
     [Widget]
     public class NoteSequenceDrawer : Drawer<NoteSequence>
     {
-        public override bool Draw(string label, ref NoteSequence ns, RenderContext rc)
+        public override bool Draw(string label, ref NoteSequence ns, GraphicsDevice rc)
         {
             List<Note> notes = ns.Notes;
             int count = notes.Count;
@@ -18,7 +18,7 @@ namespace SynthApp.Widgets
                 {
                     ImGui.SameLine();
                 }
-                if (ImGui.BeginChildFrame((uint)i, new System.Numerics.Vector2(80, 80), WindowFlags.ShowBorders))
+                if (ImGui.BeginChildFrame((uint)i, new System.Numerics.Vector2(80, 80), WindowFlags.Default))
                 {
                     object pitch = n.Pitch;
                     if (DrawerCache.GetDrawer(typeof(Pitch)).Draw("###Pitch", ref pitch, rc))

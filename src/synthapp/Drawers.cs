@@ -6,7 +6,7 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Veldrid.Graphics;
+using Veldrid;
 
 // Taken from Game Engine Editor.
 
@@ -16,18 +16,18 @@ namespace SynthApp
     {
         public Type TypeDrawn { get; }
 
-        public bool Draw(string label, ref object obj, RenderContext rc)
+        public bool Draw(string label, ref object obj, GraphicsDevice gd)
         {
             ImGui.PushID(label);
 
             bool result;
             if (obj == null)
             {
-                result = DrawNewItemSelector(label, ref obj, rc);
+                result = DrawNewItemSelector(label, ref obj, gd);
             }
             else
             {
-                result = DrawNonNull(label, ref obj, rc);
+                result = DrawNonNull(label, ref obj, gd);
             }
 
             ImGui.PopID();
@@ -35,8 +35,8 @@ namespace SynthApp
             return result;
         }
 
-        protected abstract bool DrawNonNull(string label, ref object obj, RenderContext rc);
-        protected virtual bool DrawNewItemSelector(string label, ref object obj, RenderContext rc)
+        protected abstract bool DrawNonNull(string label, ref object obj, GraphicsDevice gd);
+        protected virtual bool DrawNewItemSelector(string label, ref object obj, GraphicsDevice gd)
         {
             ImGui.Text(label + ": NULL ");
             ImGui.SameLine();
@@ -45,7 +45,7 @@ namespace SynthApp
                 obj = CreateNewObject();
                 return true;
             }
-            if (ImGui.IsLastItemHovered())
+            if (ImGui.IsItemHovered(HoveredFlags.Default))
             {
                 ImGui.SetTooltip($"Create a new {TypeDrawn.Name}.");
             }
@@ -187,7 +187,7 @@ namespace SynthApp
     {
         public Drawer() : base(typeof(T)) { }
 
-        protected sealed override bool DrawNonNull(string label, ref object obj, RenderContext rc)
+        protected sealed override bool DrawNonNull(string label, ref object obj, GraphicsDevice gd)
         {
             T tObj;
             try
@@ -199,15 +199,15 @@ namespace SynthApp
                 throw new InvalidOperationException($"Invalid type given to Drawer<{typeof(T).Name}>. {obj.GetType().Name} is not a compatible type.");
             }
 
-            bool result = Draw(label, ref tObj, rc);
+            bool result = Draw(label, ref tObj, gd);
             obj = tObj;
             return result;
         }
 
-        public abstract bool Draw(string label, ref T obj, RenderContext rc);
+        public abstract bool Draw(string label, ref T obj, GraphicsDevice gd);
     }
 
-    public delegate bool DrawFunc<T>(string label, ref T obj, RenderContext rc);
+    public delegate bool DrawFunc<T>(string label, ref T obj, GraphicsDevice gd);
     public class FuncDrawer<T> : Drawer<T>
     {
         private readonly DrawFunc<T> _drawFunc;
@@ -221,7 +221,7 @@ namespace SynthApp
 
         public FuncDrawer(Action<T> drawFunc, Func<object> newFunc = null)
         {
-            _drawFunc = (string label, ref T obj, RenderContext rc) =>
+            _drawFunc = (string label, ref T obj, GraphicsDevice gd) =>
             {
                 drawFunc(obj);
                 return false;
@@ -230,9 +230,9 @@ namespace SynthApp
             _newFunc = newFunc;
         }
 
-        public override bool Draw(string label, ref T obj, RenderContext rc)
+        public override bool Draw(string label, ref T obj, GraphicsDevice gd)
         {
-            return _drawFunc(label, ref obj, rc);
+            return _drawFunc(label, ref obj, gd);
         }
 
         public override object CreateNewObject()
@@ -250,7 +250,7 @@ namespace SynthApp
 
     public static class GenericDrawFuncs
     {
-        public static unsafe bool DrawString(string label, ref string s, RenderContext rc)
+        public static unsafe bool DrawString(string label, ref string s, GraphicsDevice gd)
         {
             bool result = false;
 
@@ -285,7 +285,7 @@ namespace SynthApp
             return string.Empty;
         }
 
-        public static bool DrawInt(string label, ref int i, RenderContext rc)
+        public static bool DrawInt(string label, ref int i, GraphicsDevice gd)
         {
             ImGui.PushItemWidth(50f);
             bool result = ImGui.DragInt(label, ref i, 1f, int.MinValue, int.MaxValue, i.ToString());
@@ -293,7 +293,7 @@ namespace SynthApp
             return result;
         }
 
-        public static bool DrawSingle(string label, ref float f, RenderContext rc)
+        public static bool DrawSingle(string label, ref float f, GraphicsDevice gd)
         {
             ImGui.PushItemWidth(50f);
             bool result = ImGui.DragFloat(label, ref f, -1000f, 1000f, 0.05f, f.ToString(), 1f);
@@ -301,7 +301,7 @@ namespace SynthApp
             return result;
         }
 
-        public static bool DrawDouble(string label, ref double f, RenderContext rc)
+        public static bool DrawDouble(string label, ref double f, GraphicsDevice gd)
         {
             ImGui.PushItemWidth(50f);
             float value = (float)f;
@@ -311,7 +311,7 @@ namespace SynthApp
             return result;
         }
 
-        public static bool DrawByte(string label, ref byte b, RenderContext rc)
+        public static bool DrawByte(string label, ref byte b, GraphicsDevice gd)
         {
             ImGui.PushItemWidth(50f);
             int val = b;
@@ -325,15 +325,15 @@ namespace SynthApp
             return false;
         }
 
-        public static bool DrawBool(string label, ref bool b, RenderContext rc)
+        public static bool DrawBool(string label, ref bool b, GraphicsDevice gd)
         {
             return ImGui.Checkbox(label, ref b);
         }
 
-        internal static bool DrawRgbaFloat(string label, ref RgbaFloat obj, RenderContext rc)
+        internal static bool DrawRgbaFloat(string label, ref RgbaFloat obj, GraphicsDevice gd)
         {
             var color = obj.ToVector4();
-            bool result = ImGui.ColorEdit4(label, ref color, true);
+            bool result = ImGui.ColorEdit4(label, ref color, ColorEditFlags.Default);
             if (result)
             {
                 obj = new RgbaFloat(color.X, color.Y, color.Z, color.W);
@@ -342,25 +342,25 @@ namespace SynthApp
             return result;
         }
 
-        internal static bool DrawVector2(string label, ref Vector2 obj, RenderContext rc)
+        internal static bool DrawVector2(string label, ref Vector2 obj, GraphicsDevice gd)
         {
             return ImGui.DragVector2(label, ref obj, float.MinValue, float.MaxValue, .1f);
         }
 
-        internal static bool DrawVector3(string label, ref Vector3 obj, RenderContext rc)
+        internal static bool DrawVector3(string label, ref Vector3 obj, GraphicsDevice gd)
         {
             return ImGui.DragVector3(label, ref obj, float.MinValue, float.MaxValue, .1f);
         }
 
-        internal static bool DrawVector4(string label, ref Vector4 obj, RenderContext rc)
+        internal static bool DrawVector4(string label, ref Vector4 obj, GraphicsDevice gd)
         {
             return ImGui.DragVector4(label, ref obj, float.MinValue, float.MaxValue, .1f);
         }
 
-        //internal static bool DrawQuaternion(string label, ref Quaternion obj, RenderContext rc)
+        //internal static bool DrawQuaternion(string label, ref Quaternion obj, GraphicsDevice gd)
         //{
         //    Vector3 euler = MathUtil.RadiansToDegrees(MathUtil.GetEulerAngles(obj));
-        //    if (DrawVector3(label, ref euler, rc))
+        //    if (DrawVector3(label, ref euler, gd))
         //    {
         //        var radians = MathUtil.DegreesToRadians(euler);
         //        obj = Quaternion.CreateFromYawPitchRoll(radians.Y, radians.X, radians.Z);
@@ -380,7 +380,7 @@ namespace SynthApp
             _enumOptions = Enum.GetNames(enumType);
         }
 
-        protected override bool DrawNonNull(string label, ref object obj, RenderContext rc)
+        protected override bool DrawNonNull(string label, ref object obj, GraphicsDevice gd)
         {
             bool result = false;
             string menuLabel = $"{label}: {obj.ToString()}";
@@ -410,7 +410,7 @@ namespace SynthApp
             _isValueType = typeof(T).GetTypeInfo().IsValueType;
         }
 
-        protected override bool DrawNonNull(string label, ref object obj, RenderContext rc)
+        protected override bool DrawNonNull(string label, ref object obj, GraphicsDevice gd)
         {
             T[] arr = (T[])obj;
             int length = arr.Length;
@@ -419,7 +419,7 @@ namespace SynthApp
 
             if (ImGui.TreeNode($"{label}[{length}]###{label}"))
             {
-                if (ImGui.IsLastItemHovered())
+                if (ImGui.IsItemHovered(HoveredFlags.Default))
                 {
                     ImGui.SetTooltip($"{TypeDrawn.GetElementType()}[{arr.Length}]");
                 }
@@ -471,7 +471,7 @@ namespace SynthApp
                         drawer = DrawerCache.GetDrawer(realType);
                     }
 
-                    bool changed = drawer.Draw($"{TypeDrawn.GetElementType().Name}[{i}]", ref element, rc);
+                    bool changed = drawer.Draw($"{TypeDrawn.GetElementType().Name}[{i}]", ref element, gd);
                     if (changed || drawer.TypeDrawn.GetTypeInfo().IsValueType)
                     {
                         arr[i] = (T)element;
@@ -481,7 +481,7 @@ namespace SynthApp
 
                 ImGui.TreePop();
             }
-            else if (ImGui.IsLastItemHovered())
+            else if (ImGui.IsItemHovered(HoveredFlags.Default))
             {
                 ImGui.SetTooltip($"{TypeDrawn.GetElementType()}[{arr.Length}]");
             }
@@ -523,7 +523,7 @@ namespace SynthApp
                 .Where(pi => !pi.IsDefined(typeof(JsonIgnoreAttribute))).ToArray();
         }
 
-        protected override bool DrawNonNull(string label, ref object obj, RenderContext rc)
+        protected override bool DrawNonNull(string label, ref object obj, GraphicsDevice gd)
         {
             ImGui.PushID(label);
 
@@ -551,7 +551,7 @@ namespace SynthApp
                     {
                         drawer = DrawerCache.GetDrawer(pi.PropertyType);
                     }
-                    bool changed = drawer.Draw(pi.Name, ref value, rc);
+                    bool changed = drawer.Draw(pi.Name, ref value, gd);
                     if (changed && originalValue != value || pi.PropertyType.GetTypeInfo().IsValueType)
                     {
                         if (pi.SetMethod != null)
@@ -577,12 +577,12 @@ namespace SynthApp
             _subTypes = type.GetTypeInfo().Assembly.GetTypes().Where(t => type.IsAssignableFrom(t) && !t.GetTypeInfo().IsAbstract).ToArray();
         }
 
-        protected override bool DrawNonNull(string label, ref object obj, RenderContext rc)
+        protected override bool DrawNonNull(string label, ref object obj, GraphicsDevice gd)
         {
             throw new InvalidOperationException("AbstractItemDrawer shouldn't be used for non-null items.");
         }
 
-        protected override bool DrawNewItemSelector(string label, ref object obj, RenderContext rc)
+        protected override bool DrawNewItemSelector(string label, ref object obj, GraphicsDevice gd)
         {
             bool result = false;
 
@@ -610,11 +610,11 @@ namespace SynthApp
 
     public class ListDrawer<T> : Drawer<List<T>>
     {
-        public override bool Draw(string label, ref List<T> obj, RenderContext rc)
+        public override bool Draw(string label, ref List<T> obj, GraphicsDevice gd)
         {
             var arrayDrawer = DrawerCache.GetDrawer(typeof(T[]));
             object arrayAsObj = obj.ToArray();
-            if (arrayDrawer.Draw(label, ref arrayAsObj, rc))
+            if (arrayDrawer.Draw(label, ref arrayAsObj, gd))
             {
                 T[] array = (T[])arrayAsObj;
                 obj = new List<T>(array);

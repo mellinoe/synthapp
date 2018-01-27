@@ -1,12 +1,12 @@
 ﻿using ImGuiNET;
-using Veldrid.Graphics;
+using Veldrid;
 
 namespace SynthApp.Widgets
 {
     [Widget]
     public class PatternTimeDrawer : Drawer<PatternTime>
     {
-        public override bool Draw(string label, ref PatternTime pt, RenderContext rc)
+        public override bool Draw(string label, ref PatternTime pt, GraphicsDevice rc)
         {
             uint tick = pt.Tick;
             int step = (int)pt.Step;

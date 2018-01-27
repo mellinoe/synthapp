@@ -2,9 +2,7 @@
 using System.Numerics;
 using System.Diagnostics;
 using System.Linq;
-using Veldrid.Platform;
-using Veldrid.Graphics;
-using System;
+using Veldrid;
 
 namespace SynthApp.Widgets
 {
@@ -18,7 +16,7 @@ namespace SynthApp.Widgets
             Debug.Assert(steps > 0);
             bool result = false;
 
-            if (ImGui.BeginChildFrame(unchecked((uint)("DrumChild" + id).GetHashCode()), GetFrameSize(steps), WindowFlags.ShowBorders))
+            if (ImGui.BeginChildFrame(unchecked((uint)("DrumChild" + id).GetHashCode()), GetFrameSize(steps), WindowFlags.Default))
             {
                 IO io = ImGui.GetIO();
                 DrawList dl = DrawList.GetForCurrentWindow();
@@ -31,7 +29,7 @@ namespace SynthApp.Widgets
                     color = Vector4.Lerp(baseColor, new Vector4(1f, 1f, 1f, 1f), active ? 0.75f : 0f);
                     ImGui.PushID((int)i);
 
-                    bool hovered = ImGui.IsMouseHoveringWindow() && ImGui.IsMouseHoveringRect(drawPos, drawPos + ButtonSize, true);
+                    bool hovered = ImGui.IsMouseHoveringRect(drawPos, drawPos + ButtonSize, true);
                     if (hovered)
                     {
                         color = Vector4.Lerp(color, RgbaFloat.White.ToVector4(), 0.6f);

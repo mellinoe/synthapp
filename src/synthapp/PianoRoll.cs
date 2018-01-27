@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
-using Veldrid.Graphics;
+using Veldrid;
 
 namespace SynthApp
 {
@@ -44,7 +44,7 @@ namespace SynthApp
 
         public unsafe void Draw()
         {
-            ImGui.SetNextWindowSize(new Vector2(600, 400), SetCondition.FirstUseEver);
+            ImGui.SetNextWindowSize(new Vector2(600, 400), Condition.FirstUseEver);
             bool opened = Application.Instance.SelectedChannel != null;
             if (opened)
             {
@@ -134,10 +134,14 @@ namespace SynthApp
                     {
                         Vector2 pos = GetNoteStartPosition(note) + _viewOffset;
                         Vector2 size = new Vector2(note.Duration.Step * _stepWidth, _pitchHeight);
-                        bool hovering = ImGui.IsMouseHoveringWindow() && ImGui.IsMouseHoveringRect(pos + gridPos, pos + gridPos + size, true);
+                        bool hovering = ImGui.IsMouseHoveringRect(pos + gridPos, pos + gridPos + size, true);
                         uint color = hovering ? Util.Argb(0.95f, 1.0f, 0.4f, 0.4f) : Util.Argb(0.75f, 1.0f, 0.2f, 0.2f);
                         dl.AddRectFilled(pos + gridPos, pos + gridPos + size, color, 5f);
                         dl.AddText(pos + gridPos + new Vector2(5, 0), note.Pitch.ToString(), Util.Argb(1, 1, 1, 1));
+                        if (io.MouseDown[0])
+                        {
+
+                        }
                         if (hovering)
                         {
                             if (io.MouseDown[0] && !_resizing && !_dragging)
@@ -158,7 +162,7 @@ namespace SynthApp
                             pos + gridPos + new Vector2(size.X + 10f, size.Y),
                             Util.Argb(1f, 1f, 1f, 1f),
                             0f);
-                        if (ImGui.IsMouseHoveringWindow() && ImGui.IsMouseHoveringRect(
+                        if (ImGui.IsMouseHoveringRect(
                             pos + gridPos + new Vector2(size.X, 0),
                             pos + gridPos + new Vector2(size.X + 10f, size.Y),
                             true))
@@ -203,7 +207,7 @@ namespace SynthApp
                     notes.Notes.RemoveAll(_noteRemovals.Contains);
                     _noteRemovals.Clear();
 
-                    if (ImGui.IsMouseHoveringWindow() && ImGui.IsMouseHoveringRect(gridPos, gridPos + gridSize, true))
+                    if (ImGui.IsMouseHoveringRect(gridPos, gridPos + gridSize, true))
                     {
                         if (io.MouseWheel != 0f)
                         {
@@ -321,7 +325,7 @@ namespace SynthApp
                 float bottom = top + pitchHeight;
                 dl.AddRectFilled(drawPos + new Vector2(left, top), drawPos + new Vector2(right, bottom), Util.Argb(1f, 1f, 0f, 0f), 1f);
             }
-            if (ImGui.IsMouseHoveringWindow() && ImGui.IsMouseHoveringRect(drawPos, drawPos + size, true) && ImGui.IsMouseClicked(0))
+            if (ImGui.IsMouseHoveringRect(drawPos, drawPos + size, true) && ImGui.IsMouseClicked(0))
             {
                 return true;
             }

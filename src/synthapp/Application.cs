@@ -5,8 +5,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Veldrid;
-using Veldrid.Graphics;
-using Veldrid.Platform;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 
@@ -18,7 +16,7 @@ namespace SynthApp
     public class Application
     {
         private readonly Sdl2Window _window;
-        private readonly RenderContext _rc;
+        private readonly GraphicsDevice _gd;
         private readonly ImGuiRenderer s_imguiRenderer;
         private readonly LiveNotePlayer s_livePlayer;
         private readonly AudioStreamCombiner s_combiner;
@@ -30,6 +28,9 @@ namespace SynthApp
 
         public Sequencer Sequencer { get; }
         public Gui Gui { get; }
+
+        private readonly CommandList _cl;
+
         public SerializationServices SerializationServices { get; }
         public ProjectContext ProjectContext { get; } = new ProjectContext();
         public Project Project { get; private set; }
@@ -52,20 +53,22 @@ namespace SynthApp
         {
             Debug.Assert(Instance == null);
             Instance = this;
-            WindowCreateInfo wci = new WindowCreateInfo();
-            wci.X = 50;
-            wci.WindowWidth = 960;
-            wci.WindowHeight = 540;
-            wci.WindowInitialState = WindowState.Maximized;
-            RenderContextCreateInfo rcci = new RenderContextCreateInfo();
+            WindowCreateInfo windowCI = new WindowCreateInfo();
+            windowCI.X = 50;
+            windowCI.WindowWidth = 960;
+            windowCI.WindowHeight = 540;
+            windowCI.WindowInitialState = WindowState.Maximized;
 
-            VeldridStartup.CreateWindowAndRenderContext(ref wci, ref rcci, out _window, out _rc);
+            GraphicsDeviceOptions deviceOptions = new GraphicsDeviceOptions(false, null, false);
+
+            VeldridStartup.CreateWindowAndGraphicsDevice(windowCI, deviceOptions, out _window, out _gd);
             _window.Title = "Synth";
-            _rc.ClearColor = RgbaFloat.Grey;
             _window.Visible = true;
-            s_imguiRenderer = new ImGuiRenderer(_rc, _window.Width, _window.Height);
+            s_imguiRenderer = new ImGuiRenderer(_gd, _gd.SwapchainFramebuffer.OutputDescription, _window.Width, _window.Height);
             _window.Resized += () => s_imguiRenderer.WindowResized(_window.Width, _window.Height);
             CustomStyle.ActivateStyle2(true, 1f);
+
+            _cl = _gd.ResourceFactory.CreateCommandList();
 
             SerializationServices = new SerializationServices();
             string latestProject = SynthAppPreferences.Instance.GetLastOpenedProject();
@@ -90,7 +93,7 @@ namespace SynthApp
 
             s_keyboardInput = new KeyboardLivePlayInput(s_livePlayer, s_streamSource);
 
-            Gui = new Gui(_rc, Sequencer, s_keyboardInput, s_livePlayer);
+            Gui = new Gui(_gd, Sequencer, s_keyboardInput, s_livePlayer, s_imguiRenderer);
 
             Debug.Assert(Project != null);
         }
@@ -124,24 +127,28 @@ namespace SynthApp
 
                 InputSnapshot snapshot = _window.PumpEvents();
                 Input.UpdateFrameInput(snapshot);
-                _rc.Viewport = new Viewport(0, 0, _window.Width, _window.Height);
-                _rc.ClearBuffer();
-                Update(deltaSeconds, snapshot);
                 Draw();
-                _rc.SwapBuffers();
+                Update(deltaSeconds, snapshot);
+                _gd.SwapBuffers();
             }
         }
 
         private void Update(float deltaSeconds, InputSnapshot snapshot)
         {
-            s_imguiRenderer.Update(deltaSeconds);
-            s_imguiRenderer.OnInputUpdated(snapshot);
+            s_imguiRenderer.Update(deltaSeconds, snapshot);
             Gui.DrawGui();
         }
 
         private void Draw()
         {
-            s_imguiRenderer.Render(_rc);
+            _cl.Begin();
+            _cl.SetFramebuffer(_gd.SwapchainFramebuffer);
+            _cl.SetFullViewports();
+            _cl.ClearColorTarget(0, RgbaFloat.Grey);
+            s_imguiRenderer.Render(_gd, _cl);
+            _cl.End();
+            _gd.SubmitCommands(_cl);
+            _gd.SwapBuffers();
         }
 
         public void LoadProject(string path)
